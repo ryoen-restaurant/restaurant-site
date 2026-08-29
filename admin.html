@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>イベント管理画面</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    #admin { display: none; }
+    .event-item { 
+      border: 1px solid #ccc; 
+      padding: 10px; 
+      margin-bottom: 10px; 
+      border-radius: 6px;
+    }
+    img { width: 150px; border-radius: 6px; }
+    #editArea { 
+      display:none; 
+      border:1px solid #aaa; 
+      padding:15px; 
+      margin-top:20px; 
+      border-radius: 6px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>イベント管理画面</h1>
+
+<!-- ▼ ログイン画面 -->
+<div id="login">
+  <h2>ログイン</h2>
+  <input id="email" type="email" placeholder="メールアドレス"><br><br>
+  <input id="password" type="password" placeholder="パスワード"><br><br>
+  <button id="loginBtn">ログイン</button>
+</div>
+
+<!-- ▼ 管理画面 -->
+<div id="admin">
+  <h2>新規イベント追加</h2>
+  <input id="title" type="text" placeholder="タイトル"><br><br>
+  <textarea id="desc" placeholder="説明"></textarea><br><br>
+  <input id="image" type="file"><br><br>
+  <button id="addBtn">イベントを追加</button>
+
+  <h2>イベント一覧</h2>
+  <div id="list"></div>
+
+  <!-- ▼ 編集フォーム -->
+  <div id="editArea">
+    <h2>イベント編集</h2>
+    <input id="editTitle" type="text" placeholder="タイトル"><br><br>
+    <textarea id="editDesc" placeholder="説明"></textarea><br><br>
+    <input id="editImage" type="file"><br><br>
+    <button id="saveEditBtn">保存する</button>
+    <button id="cancelEditBtn">キャンセル</button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+  import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-storage.js";
+
+  /* ▼ Firebase 設定（あなたのプロジェクト） ▼ */
+  const firebaseConfig = {
+    apiKey: "AIzaSyDnXJIOmutkJ0SrPln5XdKHUF9UUEnhtdI",
+    authDomain: "ryoenn-1dc81.firebaseapp.com",
+    projectId: "ryoenn-1dc81",
+    storageBucket: "ryoenn-1dc81.firebasestorage.app",
+    messagingSenderId: "92335833506",
+    appId: "1:92335833506:web:ac55b67620a086cfd332fb",
+    measurementId: "G-6D3M8D7VG6"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const storage = getStorage(app);
+
+  /* ▼ 編集フォームの要素 */
+  const editArea  = document.getElementById("editArea");
+  const editTitle = document.getElementById("editTitle");
+  const editDesc  = document.getElementById("editDesc");
+  const editImage = document.getElementById("editImage");
+
+  let editId = null; // 編集対象ID
+
+  /* ▼ ログイン処理 */
+  loginBtn.onclick = () => {
+    signInWithEmailAndPassword(auth, email.value, password.value)
+      .then(() => {
+        login.style.display = "none";
+        admin.style.display = "block";
+        loadEvents();
+      })
+      .catch(e => alert("ログイン失敗: " + e.code));
+  };
+
+  /* ▼ イベント一覧読み込み */
+  async function loadEvents() {
+    list.innerHTML = "";
+    const snap = await getDocs(collection(db, "events"));
+    snap.forEach(docData => {
+      const d = docData.data();
+      list.innerHTML += `
+        <div class="event-item">
+          <img src="${d.imageUrl}"><br>
+          <strong>${d.title}</strong><br>
+          <p>${d.description}</p>
+          <button onclick="editEvent('${docData.id}', '${d.title}', '${d.description}')">編集</button>
+          <button onclick="del('${docData.id}')">削除</button>
+        </div>
+      `;
+    });
+  }
+
+  /* ▼ 編集ボタン */
+  window.editEvent = (id, title, desc) => {
+    editId = id;
+    editTitle.value = title;
+    editDesc.value = desc;
+    editArea.style.display = "block";
+  };
+
+  /* ▼ 編集保存 */
+  saveEditBtn.onclick = async () => {
+    const newTitle = editTitle.value;
+    const newDesc  = editDesc.value;
+
+    let newImageUrl = null;
+
+    const file = editImage.files[0];
+    if (file) {
+      const storageRef = ref(storage, "events/" + file.name);
+      await uploadBytes(storageRef, file);
+      newImageUrl = await getDownloadURL(storageRef);
+    }
+
+    const updateData = {
+      title: newTitle,
+      description: newDesc
+    };
+
+    if (newImageUrl) updateData.imageUrl = newImageUrl;
+
+    await updateDoc(doc(db, "events", editId), updateData);
+
+    alert("編集を保存しました");
+    editArea.style.display = "none";
+    loadEvents();
+  };
+
+  /* ▼ 編集キャンセル */
+  cancelEditBtn.onclick = () => {
+    editArea.style.display = "none";
+  };
+
+  /* ▼ 削除 */
+  window.del = async (id) => {
+    await deleteDoc(doc(db, "events", id));
+    loadEvents();
+  };
+
+  /* ▼ 追加 */
+  addBtn.onclick = async () => {
+    const file = image.files[0];
+    if (!file) return alert("画像を選んでください");
+
+    const storageRef = ref(storage, "events/" + file.name);
+    await uploadBytes(storageRef, file);
+    const url = await getDownloadURL(storageRef);
+
+    await addDoc(collection(db, "events"), {
+      title: title.value,
+      description: desc.value,
+      imageUrl: url,
+      createdAt: new Date()
+    });
+
+    alert("追加しました");
+    loadEvents();
+  };
+</script>
+
+</body>
+</html>

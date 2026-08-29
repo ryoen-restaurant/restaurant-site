@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>アクセス｜Ryo緑</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="header">
+  <div class="logo">Ryo緑</div>
+
+  <div class="hamburger" id="hamburger">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+
+  <nav class="nav" id="nav">
+    <a href="index.html#concept">こだわり</a>
+    <a href="index.html#menu">メニュー</a>
+    <a href="index.html#kodawari">イベント</a>
+    <a href="access.html">アクセス</a>
+<a href="reserve.html" class="nav-reserve">ご予約</a>
+  </nav>
+</header>
+
+<section class="section">
+  <h2>アクセス</h2>
+  <p>
+    〒859-3618 長崎県東彼杵郡川棚町小串郷2700番地<br>
+    営業時間：11:00〜15:00<br>
+    定休日：月曜日・木曜日<br>
+    TEL：080-5808-9598
+  </p>
+
+  <div class="map">
+    <iframe 
+      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d443.3592134806314!2d129.8267219891572!3d33.066739011969936!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x356aa38fec900c77%3A0xfab09ec591ca5344!2zUnlv57iB!5e0!3m2!1sja!2sjp!4v1787897672195!5m2!1sja!2sjp"
+      width="100%" 
+      height="300" 
+      style="border:0;" 
+      allowfullscreen="" 
+      loading="lazy" 
+      referrerpolicy="strict-origin-when-cross-origin">
+    </iframe>
+  </div>
+</section>
+
+<!-- 駐車場案内 -->
+<section class="section">
+  <h2>駐車場のご案内</h2>
+  <p>赤枠の場所が駐車スペースとなっております。</p>
+
+  <div class="parking-photos">
+    <div class="access-item">
+      <img src="images/parking1.png" alt="駐車場1" class="access-img">
+      <p class="access-caption">① 店舗周辺の駐車場は狭いため、こちらもご利用ください。</p>
+    </div>
+
+    <div class="access-item">
+      <img src="images/parking2.png" alt="駐車場2" class="access-img">
+      <p class="access-caption">② 赤い枠内に店舗側に向かって３台駐車できます。</p>
+    </div>
+  </div>
+</section>
+
+<!-- 道順案内（3枚横並び） -->
+<section class="section">
+  <h2>お店までの道順</h2>
+  <p>初めての方でも迷わないよう、道順の写真を掲載しています。</p>
+
+  <div class="path-photos">
+    <div class="access-item">
+      <img src="images/path1.png" alt="道順1" class="access-img">
+      <p class="access-caption">① 道路より矢印の方向に曲がってください。</p>
+    </div>
+
+    <div class="access-item">
+      <img src="images/path2.png" alt="道順2" class="access-img">
+      <p class="access-caption">② 道が狭いのでお気をつけながら道なりに進んでください。</p>
+    </div>
+
+    <div class="access-item">
+      <img src="images/path3.png" alt="道順3" class="access-img">
+      <p class="access-caption">③ 道なりに行きますと、右側に店舗がでてきます。</p>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-logo">Ryo緑</div>
+  <small>© Ryo緑</small>
+</footer>
+
+<script>
+  const hamburger = document.getElementById("hamburger");
+  const nav = document.getElementById("nav");
+
+  hamburger.addEventListener("click", () => {
+    nav.classList.toggle("active");
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ryo緑</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="header">
+  <div class="logo">Ryo緑</div>
+
+  <!-- ハンバーガー -->
+  <div class="hamburger" id="hamburger">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+
+  <!-- ナビ -->
+  <nav class="nav" id="nav">
+    <a href="#concept">こだわり</a>
+    <a href="#menu">メニュー</a>
+    <a href="#kodawari">イベント</a>
+    <a href="access.html">アクセス</a>
+    <a href="reserve.html" class="nav-reserve">ご予約</a>
+
+  </nav>
+</header>
+
+<!-- Hero -->
+<section class="hero">
+  <img src="images/hero.png" alt="Ryo緑ランチ" class="hero-img">
+  <div class="hero-text">
+    <h1>元給食のおばちゃんが作るオシャレじゃないけどちょっと身体に良いご飯</h1>
+    <p>あなたのお腹も心も喜びがあふれだす処</p>
+  </div>
+</section>
+
+<!-- Concept（画像スライダー版） -->
+<section id="concept" class="section">
+  <h2>Ryo縁のこだわり</h2>
+
+  <div class="concept-card">
+
+    <!-- ▼ スライダー枠 -->
+    <div class="concept-slider" id="conceptSlider"></div>
+
+    <div class="concept-text">
+<div class="feature-block">
+  <h3>無添加調味料でつくる</h3>
+    素材の味を最大限に引き出すために無添加調味料を使ってます
+</div>
+<div class="feature-block">
+  <h3>重ね煮</h3>
+  陰陽の法則に基づきお鍋の中でエネルギーいっぱいになったお野菜を使ってます 
+</div>
+<div class="feature-block">
+  <h3>麹</h3>
+    手作りの【レモン麹】【きのこ麹】【玉ねぎ麹】【トマト麹】【カレー麹】<br>
+    【野菜麹】【中華麴】【しょうゆ麹】を使って料理します
+</div>
+
+<div class="feature-block">
+<h3>たくさんの人とコラボ</h3>
+己書　願いが叶うディメンション　スピリチュアルカウンセリング<br>
+松果体活性化ヘッドセラピー　霊氣ヒーリング　龍氣ヒーリング　数字のメゾット<br>
+直博霊氣　筆跡診断　魔法のスイッチ　足ツボマッサージ　マヤ歴<br>
+スマホのお悩み相談　マインドフルネス自慈心カード<br>
+オモシロい方達がランダムに来てくれます
+    </div>
+
+</section>
+
+<!-- Menu -->
+<section id="menu" class="section">
+  <h2>メニュー</h2>
+  <div class="menu-grid">
+
+    <div class="menu-card">
+      <img src="images/royenlunch.png" alt="Ryo緑ランチ">
+      <h3>Ryo緑ランチ｜2,000円</h3>
+      <p>旬の野菜や発酵食品をたっぷり使った彩り豊かなランチです。</p>
+    </div>
+
+    <div class="menu-card">
+      <img src="images/royenplate.png" alt="ワンプレート給食">
+      <h3>ワンプレート給食｜1,480円</h3>
+      <p>懐かしくてやさしい味わいの、体にうれしいワンプレート。</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- Event -->
+<section id="kodawari" class="section">
+  <h2>イベント情報</h2>
+
+  <div class="event-scroll" id="eventScroll">
+    <!-- Firebaseからイベントを読み込んで自動でここに追加される -->
+  </div>
+</section>
+
+<!-- ▼ モーダル（イベント拡大表示） -->
+<div id="eventModal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn">&times;</span>
+    <img id="modalImage" src="" alt="イベント画像">
+    <p id="modalDesc"></p>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="footer" id="footer-access">
+
+  <div class="footer-box">
+
+    <div class="footer-info">
+      <h3>店舗情報</h3>
+      <p>
+        〒859-3618 長崎県東彼杵郡川棚町小串郷2700番地<br>
+        営業時間：11:00〜15:00<br>
+        定休日：月曜日・木曜日<br>
+        TEL：080-5808-9598
+      </p>
+<div class="footer-sns">
+  <a href="https://lin.ee/あなたのLINEリンク" target="_blank" class="sns-icon">
+    <img src="https://scdn.line-apps.com/n/line_add_friends/btn/ja.png" alt="LINE公式アカウント">
+  </a>
+
+  <a href="https://www.instagram.com/あなたのインスタID/" target="_blank" class="sns-icon">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram">
+  </a>
+</div>
+
+    </div>
+    
+    <!-- ▼ 長押しで管理画面へ -->
+    <div class="footer-brand">
+      <div class="footer-logo" id="adminLogo">Ryo緑</div>
+      <small>© Ryo緑</small>
+    </div>
+
+  </div>
+
+</footer>
+
+<script>
+  /* ハンバーガー */
+  const hamburger = document.getElementById("hamburger");
+  const nav = document.getElementById("nav");
+
+  hamburger.addEventListener("click", () => {
+    nav.classList.toggle("active");
+  });
+
+  /* PCドラッグで横スクロール */
+  const eventScroll = document.getElementById('eventScroll');
+  let isDown = false;
+  let startX;
+  let scrollLeft;
+
+  eventScroll.addEventListener('mousedown', (e) => {
+    isDown = true;
+    startX = e.pageX - eventScroll.offsetLeft;
+    scrollLeft = eventScroll.scrollLeft;
+  });
+
+  eventScroll.addEventListener('mouseleave', () => isDown = false);
+  eventScroll.addEventListener('mouseup', () => isDown = false);
+
+  eventScroll.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - eventScroll.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    eventScroll.scrollLeft = scrollLeft - walk;
+  });
+
+  /* 長押しで管理画面へ */
+  const adminLogo = document.getElementById("adminLogo");
+  let pressTimer;
+
+  adminLogo.addEventListener("mousedown", () => {
+    pressTimer = setTimeout(() => {
+      window.open("admin.html", "_blank");
+    }, 1200);
+  });
+
+  adminLogo.addEventListener("mouseup", () => clearTimeout(pressTimer));
+  adminLogo.addEventListener("mouseleave", () => clearTimeout(pressTimer));
+
+  /* ▼ モーダル閉じる */
+  const modal = document.getElementById("eventModal");
+  const closeBtn = document.querySelector(".close-btn");
+
+  closeBtn.addEventListener("click", () => {
+    modal.style.display = "none";
+  });
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.style.display = "none";
+  });
+</script>
+
+<!-- ▼ Firebaseからイベント読み込み -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
+  /* ▼ 新しい Firebase 設定値（ryoenn-1dc81） ▼ */
+  const firebaseConfig = {
+    apiKey: "AIzaSyDnXJIOmutkJ0SrPln5XdKHUF9UUEnhtdI",
+    authDomain: "ryoenn-1dc81.firebaseapp.com",
+    projectId: "ryoenn-1dc81",
+    storageBucket: "ryoenn-1dc81.firebasestorage.app",
+    messagingSenderId: "92335833506",
+    appId: "1:92335833506:web:ac55b67620a086cfd332fb",
+    measurementId: "G-6D3M8D7VG6"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  async function loadEvents() {
+    const eventScroll = document.getElementById("eventScroll");
+    eventScroll.innerHTML = "";
+
+    const snapshot = await getDocs(collection(db, "events"));
+    snapshot.forEach((docData) => {
+      const data = docData.data();
+
+      const card = document.createElement("div");
+      card.classList.add("event-card");
+
+      card.innerHTML = `
+        <img src="${data.imageUrl}" alt="イベント写真">
+        <p class="event-desc">${data.description}</p>
+      `;
+
+      /* ▼ カードクリックでモーダル表示 */
+      card.addEventListener("click", () => {
+        document.getElementById("modalImage").src = data.imageUrl;
+        document.getElementById("modalDesc").textContent = data.description;
+        document.getElementById("eventModal").style.display = "flex";
+      });
+
+      eventScroll.appendChild(card);
+    });
+  }
+
+  loadEvents();
+</script>
+
+<!-- ▼ こだわり画像スライダー -->
+<script>
+  const conceptImages = [
+    "images/concept.png",
+    "images/concept2.png",
+    "images/concept3.png"
+  ];
+
+  const slider = document.getElementById("conceptSlider");
+
+  conceptImages.forEach((src, index) => {
+    const img = document.createElement("img");
+    img.src = src;
+    if (index === 0) img.classList.add("active");
+    slider.appendChild(img);
+  });
+
+  let currentIndex = 0;
+  const imgs = slider.querySelectorAll("img");
+
+  setInterval(() => {
+    imgs[currentIndex].classList.remove("active");
+    currentIndex = (currentIndex + 1) % imgs.length;
+    imgs[currentIndex].classList.add("active");
+  }, 3000);
+
+  slider.addEventListener("click", () => {
+    imgs[currentIndex].classList.remove("active");
+    currentIndex = (currentIndex + 1) % imgs.length;
+    imgs[currentIndex].classList.add("active");
+  });
+</script>
+
+</body>
+</html>
