@@ -191,6 +191,28 @@
 /* 長押しで管理画面へ */
 const adminLogo = document.getElementById("adminLogo");
 let pressTimer;
+let isLongPress = false;
+
+// ▼ 長押し開始（スマホ）
+adminLogo.addEventListener("touchstart", (e) => {
+  e.preventDefault(); // 標準の長押しメニューを無効化
+  isLongPress = false;
+
+  pressTimer = setTimeout(() => {
+    isLongPress = true;
+    window.location.href = "admin.html"; // スマホは新規タブよりこちらが確実
+  }, 1200);
+});
+
+// ▼ 長押し終了（スマホ）
+adminLogo.addEventListener("touchend", () => {
+  clearTimeout(pressTimer);
+});
+
+// ▼ キャンセル（スマホ）
+adminLogo.addEventListener("touchcancel", () => {
+  clearTimeout(pressTimer);
+});
 
 // ▼ PC（マウス）
 adminLogo.addEventListener("mousedown", () => {
@@ -200,15 +222,6 @@ adminLogo.addEventListener("mousedown", () => {
 });
 adminLogo.addEventListener("mouseup", () => clearTimeout(pressTimer));
 adminLogo.addEventListener("mouseleave", () => clearTimeout(pressTimer));
-
-// ▼ スマホ（タッチ）
-adminLogo.addEventListener("touchstart", () => {
-  pressTimer = setTimeout(() => {
-    window.open("admin.html", "_blank");
-  }, 1200);
-});
-adminLogo.addEventListener("touchend", () => clearTimeout(pressTimer));
-adminLogo.addEventListener("touchcancel", () => clearTimeout(pressTimer));
 
   /* ▼ モーダル閉じる */
   const modal = document.getElementById("eventModal");
