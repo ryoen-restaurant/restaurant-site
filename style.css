@@ -434,7 +434,7 @@ body {
 }
 
 .footer-sns img {
-  max-width: 100%;
+  width: 32px;   /* ← ここでロゴの大きさを決める */
   height: auto;
 }
 
