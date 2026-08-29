@@ -428,16 +428,14 @@ body {
 }
 .footer-sns {
   display: flex;
-  gap: 18px;
-  margin-top: 20px;
+  gap: 16px;
   justify-content: center;
+  flex-wrap: wrap;
 }
 
 .footer-sns img {
-  width: 32px;
-  height: 32px;
-  opacity: 0.85;
-  transition: 0.3s ease;
+  max-width: 100%;
+  height: auto;
 }
 
 .footer-sns img:hover {
