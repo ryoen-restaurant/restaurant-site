@@ -152,7 +152,6 @@
       <div class="footer-logo" id="adminLogo">Ryo緑</div>
       <small>© Ryo緑</small>
     </div>
-
   </div>
 
 </footer>
@@ -189,18 +188,27 @@
     eventScroll.scrollLeft = scrollLeft - walk;
   });
 
-  /* 長押しで管理画面へ */
-  const adminLogo = document.getElementById("adminLogo");
-  let pressTimer;
+/* 長押しで管理画面へ */
+const adminLogo = document.getElementById("adminLogo");
+let pressTimer;
 
-  adminLogo.addEventListener("mousedown", () => {
-    pressTimer = setTimeout(() => {
-      window.open("admin.html", "_blank");
-    }, 1200);
-  });
+// ▼ PC（マウス）
+adminLogo.addEventListener("mousedown", () => {
+  pressTimer = setTimeout(() => {
+    window.open("admin.html", "_blank");
+  }, 1200);
+});
+adminLogo.addEventListener("mouseup", () => clearTimeout(pressTimer));
+adminLogo.addEventListener("mouseleave", () => clearTimeout(pressTimer));
 
-  adminLogo.addEventListener("mouseup", () => clearTimeout(pressTimer));
-  adminLogo.addEventListener("mouseleave", () => clearTimeout(pressTimer));
+// ▼ スマホ（タッチ）
+adminLogo.addEventListener("touchstart", () => {
+  pressTimer = setTimeout(() => {
+    window.open("admin.html", "_blank");
+  }, 1200);
+});
+adminLogo.addEventListener("touchend", () => clearTimeout(pressTimer));
+adminLogo.addEventListener("touchcancel", () => clearTimeout(pressTimer));
 
   /* ▼ モーダル閉じる */
   const modal = document.getElementById("eventModal");
