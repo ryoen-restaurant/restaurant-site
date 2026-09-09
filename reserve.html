@@ -3,22 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ご予約案内｜Ryo緑</title>
+  <title>ログイン｜Ryo緑</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
+
 <header class="header">
   <div class="logo">Ryo緑</div>
 
-  <!-- ハンバーガー -->
   <div class="hamburger" id="hamburger">
-    <span></span>
-    <span></span>
-    <span></span>
+    <span></span><span></span><span></span>
   </div>
 
-  <!-- ナビ -->
   <nav class="nav" id="nav">
     <a href="index.html#concept">こだわり</a>
     <a href="index.html#menu">メニュー</a>
@@ -28,36 +25,92 @@
   </nav>
 </header>
 
-  <section class="section reserve-panel-vertical">
-    <h2>ご予約のご案内</h2>
-    <p>Ryo緑では、ゆっくりとお食事を楽しんでいただくために、事前予約をお願いしております。下記のいずれかの方法でご予約いただけます。</p>
+<section class="section reserve-panel-vertical">
+  <h2>ログインして予約する</h2>
+  <p>ご予約にはログインが必要です。お好きな方法をお選びください。</p>
 
-    <h3>ご予約方法</h3>
-    <div class="reserve-links">
-      <a href="https://docs.google.com/forms/d/e/1FAIpQLSc4LexwzjVUV8x5D3-y20Qctr-ck9bdk4icGsduCBfl6KlC4w/viewform?usp=publish-editor" class="reserve-btn">Googleフォームで予約する</a>
-      <a href="https://lin.ee/8gbJrjHL" class="reserve-btn">LINE公式アカウントで予約する</a>
-      <a href="tel:080-5808-9598" class="reserve-btn">電話で予約する</a>
-    </div>
+  <div class="reserve-links">
+    <button class="reserve-btn" id="lineLogin">LINEでログイン</button>
+    <button class="reserve-btn" id="googleLogin">Googleでログイン</button>
+    <button class="reserve-btn" id="emailLogin">メールアドレスでログイン</button>
 
-    <h3>ご注意事項</h3>
-    <ul>
-      <li>当日のご予約はお電話のみ承ります。</li>
-      <li>ご予約変更の場合はお電話お願いいたします。</li>
-      <li>Googleフォームからのご予約は、確認メールの返信をもって確定となります。</li>
-    </ul>
-  </section>
+    <!-- ▼ ゲスト予約ボタン（ログイン不要） -->
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSc4LexwzjVUV8x5D3-y20Qctr-ck9bdk4icGsduCBfl6KlC4w/viewform?usp=publish-editor"
+       class="reserve-btn"
+       style="background:#6b8f71;">
+       ゲストとして予約する（ログイン不要）
+    </a>
+  </div>
 
-  <footer class="footer">
-    <div>Ryo緑</div>
-    <small>© Ryo緑</small>
-  </footer>
-</body>
-</html>
+  <p style="margin-top:20px; font-size:14px; color:#666;">
+    ログイン後、予約フォームへ進みます。<br>
+    ※ログインが難しい方は「ゲスト予約」をご利用ください。
+  </p>
+</section>
+
+<footer class="footer">
+  <div>Ryo緑</div>
+  <small>© Ryo緑</small>
+</footer>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
 <script>
   const hamburger = document.getElementById("hamburger");
   const nav = document.getElementById("nav");
+  hamburger.addEventListener("click", () => nav.classList.toggle("active"));
 
-  hamburger.addEventListener("click", () => {
-    nav.classList.toggle("active");
+  /* ▼ LIFF 初期化 */
+  async function initLiff() {
+    await liff.init({
+      liffId: "YOUR_LIFF_ID"  // ← あなたの LIFF ID を入れる
+    });
+
+    // すでにログインしている場合
+    if (liff.isLoggedIn()) {
+      window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSc4LexwzjVUV8x5D3-y20Qctr-ck9bdk4icGsduCBfl6KlC4w/viewform?usp=publish-editor";
+    }
+  }
+
+  initLiff();
+
+  /* ▼ LINEログインボタン */
+  document.getElementById("lineLogin").addEventListener("click", () => {
+    if (!liff.isLoggedIn()) {
+      liff.login();
+    }
+  });
+
+  /* ▼ Googleログイン（後で実装） */
+  document.getElementById("googleLogin").addEventListener("click", () => {
+    alert("Googleログイン処理をここに追加します");
+  });
+
+  /* ▼ メールログイン（後で実装） */
+  document.getElementById("emailLogin").addEventListener("click", () => {
+    alert("メールログイン処理をここに追加します");
   });
 </script>
+
+
+<script>
+  /* ハンバーガー */
+  const hamburger = document.getElementById("hamburger");
+  const nav = document.getElementById("nav");
+  hamburger.addEventListener("click", () => nav.classList.toggle("active"));
+
+  /* ▼ ログインボタン（後で本物の認証処理を追加） */
+  document.getElementById("lineLogin").addEventListener("click", () => {
+    alert("LINEログイン処理をここに追加します");
+  });
+
+  document.getElementById("googleLogin").addEventListener("click", () => {
+    alert("Googleログイン処理をここに追加します");
+  });
+
+  document.getElementById("emailLogin").addEventListener("click", () => {
+    alert("メールログイン処理をここに追加します");
+  });
+</script>
+
+</body>
+</html>
