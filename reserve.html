@@ -98,9 +98,12 @@
     }
   });
 
-  /* ▼ Googleログイン（redirect方式：LINE内ブラウザ対応） */
+  /* ▼ Googleログイン（redirect方式：GitHub Pages対応） */
   document.getElementById("googleLogin").addEventListener("click", () => {
     const provider = new firebase.auth.GoogleAuthProvider();
+
+    // GitHub Pages では popup が使えないため redirect を使用
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     firebase.auth().signInWithRedirect(provider);
   });
 
@@ -119,6 +122,9 @@
 
       window.location.href = "mypage.html";
     }
+  }).catch(err => {
+    console.error("Googleログインエラー:", err);
+    alert("Googleログインに失敗しました");
   });
 
   /* ▼ メールログイン（後で実装） */
