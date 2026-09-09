@@ -53,6 +53,7 @@
 
     /* ▼ 中央ポップアップ（style.css の干渉を完全に無効化） */
     #completeToast {
+      display: block !important;        /* ← 最重要：これで必ず表示される */
       visibility: hidden !important;
       opacity: 0 !important;
       position: fixed !important;
@@ -219,7 +220,7 @@
       toast.style.visibility = "visible";
       toast.style.opacity = "1";
 
-      /* ▼ 1.5秒後にマイページへ遷移（修正済み） */
+      /* ▼ 1.5秒後にマイページへ遷移（正しいパス） */
       setTimeout(() => {
         window.location.href = "https://ryoen-restaurant.github.io/restaurant-site/mypage.html";
       }, 1500);
