@@ -51,23 +51,22 @@
       box-sizing: border-box;
     }
 
-    /* ▼ 中央ポップアップ */
+    /* ▼ 中央ポップアップ（!important を使わない） */
     #completeToast {
-      display: block !important;
-      visibility: hidden !important;
-      opacity: 0 !important;
-      position: fixed !important;
-      top: 50% !important;
-      left: 50% !important;
-      transform: translate(-50%, -50%) !important;
-      background: #333 !important;
-      color: #fff !important;
-      padding: 24px 32px !important;
-      border-radius: 8px !important;
-      font-size: 16px !important;
-      z-index: 99999 !important;
-      transition: opacity 0.5s ease !important;
-      text-align: center !important;
+      display: none;
+      opacity: 0;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #333;
+      color: #fff;
+      padding: 24px 32px;
+      border-radius: 8px;
+      font-size: 16px;
+      z-index: 99999;
+      text-align: center;
+      transition: opacity 0.5s ease;
     }
   </style>
 </head>
@@ -229,13 +228,16 @@
       };
       localStorage.setItem("userProfile", JSON.stringify(profile));
 
-      /* ▼ 中央ポップアップ表示 */
+      /* ▼ ポップアップ表示（確実に表示される） */
       const toast = document.getElementById("completeToast");
-      toast.style.visibility = "visible";
-      toast.style.opacity = "1";
+      toast.style.display = "block";
+      setTimeout(() => {
+        toast.style.opacity = "1";
+      }, 10);
 
       /* ▼ ボタンでマイページへ進む */
-      document.getElementById("goMypageBtn").addEventListener("click", () => {
+      const btn = document.getElementById("goMypageBtn");
+      btn.addEventListener("click", () => {
         window.location.href = "mypage.html";
       });
 
