@@ -38,14 +38,23 @@
   <p>ご予約にはログインが必要です。お好きな方法をお選びください。</p>
 
   <div class="reserve-links">
+
+    <!-- LINEログイン -->
     <button class="reserve-btn" id="lineLogin">LINEでログイン</button>
-    <button class="reserve-btn" id="googleLogin" style="background:#db4437;">Googleでログイン</button>
+
+    <!-- メールログイン -->
     <button class="reserve-btn" id="emailLogin">メールアドレスでログイン</button>
 
+    <!-- 新規登録ページへ -->
+    <a href="register.html" class="reserve-btn" style="background:#4a7bd0;">
+      新規登録
+    </a>
+
+    <!-- ゲスト予約 -->
     <a href="https://docs.google.com/forms/d/e/1FAIpQLSc4LexwzjVUV8x5D3-y20Qctr-ck9bdk4icGsduCBfl6KlC4w/viewform?usp=publish-editor"
        class="reserve-btn"
        style="background:#6b8f71;">
-       ゲストとして予約する（ログイン不要）
+       ゲストで予約する
     </a>
   </div>
 
@@ -68,7 +77,7 @@
 </script>
 
 <script>
-  /* ▼ Firebase設定（あなたの値） */
+  /* ▼ Firebase設定（GitHub Pages対応版） */
   const firebaseConfig = {
     apiKey: "AIzaSyDnXJIOmutkJ0SrPln5XdKHUF9UUEnhtdI",
     authDomain: "ryoen-restaurant.github.io",
@@ -98,36 +107,30 @@
     }
   });
 
-  /* ▼ Googleログイン（popup方式：GitHub Pagesで最も安定） */
-  document.getElementById("googleLogin").addEventListener("click", () => {
-    const provider = new firebase.auth.GoogleAuthProvider();
+  /* ▼ メールログイン */
+  document.getElementById("emailLogin").addEventListener("click", async () => {
+    const email = prompt("メールアドレスを入力してください");
+    if (!email) return;
 
-    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-      .then(() => {
-        return firebase.auth().signInWithPopup(provider);
-      })
-      .then(result => {
-        const user = result.user;
+    const password = prompt("パスワードを入力してください");
+    if (!password) return;
 
-        const profile = {
-          displayName: user.displayName,
-          userId: user.uid,
-          pictureUrl: user.photoURL
-        };
+    try {
+      const result = await firebase.auth().signInWithEmailAndPassword(email, password);
+      const user = result.user;
 
-        localStorage.setItem("userProfile", JSON.stringify(profile));
+      const profile = {
+        displayName: user.email,
+        userId: user.uid,
+        pictureUrl: ""
+      };
 
-        window.location.href = "mypage.html";
-      })
-      .catch(err => {
-        console.error("Googleログインエラー:", err);
-        alert("Googleログインに失敗しました");
-      });
-  });
+      localStorage.setItem("userProfile", JSON.stringify(profile));
+      window.location.href = "mypage.html";
 
-  /* ▼ メールログイン（後で実装） */
-  document.getElementById("emailLogin").addEventListener("click", () => {
-    alert("メールログイン処理をここに追加します");
+    } catch (err) {
+      alert("ログインに失敗しました：" + err.message);
+    }
   });
 </script>
 

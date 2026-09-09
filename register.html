@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>新規登録｜Ryo緑</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Firebase v8互換 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <style>
+    /* ▼ フォーム全体をスマホ幅に合わせる */
+    .register-form {
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ▼ 名前だけ横並び（PC） */
+    .name-row {
+      display: flex;
+      gap: 40px;
+      width: 100%;
+    }
+    .name-field {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ▼ スマホでは縦並びに切り替え */
+    @media (max-width: 600px) {
+      .name-row {
+        flex-direction: column;
+        gap: 10px;
+      }
+    }
+
+    /* ▼ 入力欄デザイン（背景からはみ出さない） */
+    .register-form label {
+      margin-top: 18px;
+      margin-bottom: 6px;
+      font-size: 15px;
+      color: #333;
+    }
+    .reserve-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 15px;
+      box-sizing: border-box; /* ← はみ出し防止 */
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="header">
+  <div class="logo">Ryo緑</div>
+
+  <div class="hamburger" id="hamburger">
+    <span></span><span></span><span></span>
+  </div>
+
+  <nav class="nav" id="nav">
+    <a href="index.html#concept">こだわり</a>
+    <a href="index.html#menu">メニュー</a>
+    <a href="index.html#kodawari">イベント</a>
+    <a href="access.html">アクセス</a>
+    <a href="mypage.html">マイページ</a>
+    <a href="reserve.html" class="nav-reserve">ご予約</a>
+  </nav>
+</header>
+
+<section class="section reserve-panel-vertical">
+  <h2>新規登録</h2>
+  <p>必要事項をご入力ください。</p>
+
+  <form id="registerForm" class="register-form">
+
+    <!-- ▼ 名前（PC横並び／スマホ縦並び） -->
+    <div class="name-row">
+      <div class="name-field">
+        <label>姓</label>
+        <input type="text" id="lastName" class="reserve-input" required>
+      </div>
+
+      <div class="name-field">
+        <label>名</label>
+        <input type="text" id="firstName" class="reserve-input" required>
+      </div>
+    </div>
+
+    <!-- ▼ 以下は縦並び -->
+    <label>メールアドレス</label>
+    <input type="email" id="email" class="reserve-input" required>
+
+    <label>電話番号</label>
+    <input type="tel" id="phone" class="reserve-input" required>
+
+    <label>パスワード（6文字以上）</label>
+    <input type="password" id="password" class="reserve-input" required>
+
+    <label>パスワード（確認用）</label>
+    <input type="password" id="passwordConfirm" class="reserve-input" required>
+
+    <button type="submit" class="reserve-btn" style="margin-top:20px;">
+      登録する
+    </button>
+  </form>
+
+  <p id="msg" style="margin-top:20px; color:#d33;"></p>
+</section>
+
+<footer class="footer">
+  <div>Ryo緑</div>
+  <small>© Ryo緑</small>
+</footer>
+
+<script>
+  const hamburger = document.getElementById("hamburger");
+  const nav = document.getElementById("nav");
+  hamburger.addEventListener("click", () => nav.classList.toggle("active"));
+</script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDnXJIOmutkJ0SrPln5XdKHUF9UUEnhtdI",
+    authDomain: "ryoen-restaurant.github.io",
+    projectId: "ryoen-1dc81",
+    storageBucket: "ryoen-1dc81.firebasestorage.app",
+    messagingSenderId: "92335833506",
+    appId: "1:92335833506:web:ac55b67620a086cfd332fb",
+    measurementId: "G-6D3M8D7VG6"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  document.getElementById("registerForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const lastName = document.getElementById("lastName").value.trim();
+    const firstName = document.getElementById("firstName").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const password = document.getElementById("password").value;
+    const passwordConfirm = document.getElementById("passwordConfirm").value;
+
+    const msg = document.getElementById("msg");
+    msg.textContent = "";
+
+    if (password !== passwordConfirm) {
+      msg.textContent = "パスワードが一致しません。もう一度ご確認ください。";
+      return;
+    }
+
+    try {
+      const newUser = await firebase.auth().createUserWithEmailAndPassword(email, password);
+      const uid = newUser.user.uid;
+
+      await db.collection("users").doc(uid).set({
+        lastName,
+        firstName,
+        email,
+        phone,
+        createdAt: new Date()
+      });
+
+      const profile = {
+        displayName: `${lastName} ${firstName}`,
+        userId: uid,
+        email,
+        phone,
+        pictureUrl: ""
+      };
+      localStorage.setItem("userProfile", JSON.stringify(profile));
+
+      window.location.href = "mypage.html";
+
+    } catch (err) {
+      msg.textContent = "登録に失敗しました：" + err.message;
+    }
+  });
+</script>
+
+</body>
+</html>
