@@ -98,28 +98,27 @@
     }
   });
 
-  /* ▼ Googleログイン */
-  document.getElementById("googleLogin").addEventListener("click", async () => {
+  /* ▼ Googleログイン（redirect方式：LINE内ブラウザ対応） */
+  document.getElementById("googleLogin").addEventListener("click", () => {
     const provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithRedirect(provider);
+  });
 
-    firebase.auth().signInWithPopup(provider)
-      .then(result => {
-        const user = result.user;
+  /* ▼ Googleログイン後の処理 */
+  firebase.auth().getRedirectResult().then(result => {
+    if (result.user) {
+      const user = result.user;
 
-        const profile = {
-          displayName: user.displayName,
-          userId: user.uid,
-          pictureUrl: user.photoURL
-        };
+      const profile = {
+        displayName: user.displayName,
+        userId: user.uid,
+        pictureUrl: user.photoURL
+      };
 
-        localStorage.setItem("userProfile", JSON.stringify(profile));
+      localStorage.setItem("userProfile", JSON.stringify(profile));
 
-        window.location.href = "mypage.html";
-      })
-      .catch(err => {
-        alert("Googleログインに失敗しました");
-        console.error(err);
-      });
+      window.location.href = "mypage.html";
+    }
   });
 
   /* ▼ メールログイン（後で実装） */
