@@ -53,7 +53,8 @@
 
     /* ▼ 中央ポップアップ（style.css の干渉を完全に無効化） */
     #completeToast {
-      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
       position: fixed !important;
       top: 50% !important;
       left: 50% !important;
@@ -64,7 +65,6 @@
       border-radius: 8px !important;
       font-size: 16px !important;
       z-index: 99999 !important;
-      opacity: 0 !important;
       transition: opacity 0.5s ease !important;
       text-align: center !important;
     }
@@ -214,19 +214,15 @@
       };
       localStorage.setItem("userProfile", JSON.stringify(profile));
 
-/* ▼ 中央ポップアップ表示 */
-const toast = document.getElementById("completeToast");
-toast.style.display = "block";
-toast.style.opacity = "0";
+      /* ▼ 中央ポップアップ表示 */
+      const toast = document.getElementById("completeToast");
+      toast.style.visibility = "visible";
+      toast.style.opacity = "1";
 
-setTimeout(() => {
-  toast.style.opacity = "1";
-}, 50);
-
-/* ▼ 1.5秒後にマイページへ遷移（あなたのフォルダ構造に合わせた絶対パス） */
-setTimeout(() => {
-  window.location.href = "https://ryoen-restaurant.github.io/restaurant/mypage.html";
-}, 1500);
+      /* ▼ 1.5秒後にマイページへ遷移（修正済み） */
+      setTimeout(() => {
+        window.location.href = "https://ryoen-restaurant.github.io/restaurant-site/mypage.html";
+      }, 1500);
 
     } catch (err) {
 
