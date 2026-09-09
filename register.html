@@ -52,7 +52,24 @@
       border: 1px solid #ccc;
       border-radius: 4px;
       font-size: 15px;
-      box-sizing: border-box; /* ← はみ出し防止 */
+      box-sizing: border-box;
+    }
+
+    /* ▼ 完了トースト（フェードイン通知） */
+    #completeToast {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-size: 15px;
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.6s;
     }
   </style>
 </head>
@@ -115,6 +132,9 @@
 
   <p id="msg" style="margin-top:20px; color:#d33;"></p>
 </section>
+
+<!-- ▼ 完了通知トースト -->
+<div id="completeToast">登録が完了しました。マイページへ移動します。</div>
 
 <footer class="footer">
   <div>Ryo緑</div>
@@ -180,7 +200,15 @@
       };
       localStorage.setItem("userProfile", JSON.stringify(profile));
 
-      window.location.href = "mypage.html";
+      // ▼ 完了トースト表示
+      const toast = document.getElementById("completeToast");
+      toast.style.display = "block";
+      setTimeout(() => toast.style.opacity = "1", 50);
+
+      // ▼ 1.5秒後にマイページへ遷移
+      setTimeout(() => {
+        window.location.href = "mypage.html";
+      }, 1500);
 
     } catch (err) {
       msg.textContent = "登録に失敗しました：" + err.message;
