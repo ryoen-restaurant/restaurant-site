@@ -51,9 +51,9 @@
       box-sizing: border-box;
     }
 
-    /* ▼ 中央ポップアップ（style.css の干渉を完全に無効化） */
+    /* ▼ 中央ポップアップ */
     #completeToast {
-      display: block !important;        /* ← 最重要：これで必ず表示される */
+      display: block !important;
       visibility: hidden !important;
       opacity: 0 !important;
       position: fixed !important;
@@ -129,8 +129,22 @@
   <p id="msg" style="margin-top:20px; color:#d33;"></p>
 </section>
 
-<!-- ▼ 中央ポップアップ -->
-<div id="completeToast">登録が完了しました。マイページへ移動します。</div>
+<!-- ▼ 中央ポップアップ（ボタン付き） -->
+<div id="completeToast">
+  登録が完了しました。<br>
+  <button id="goMypageBtn" style="
+    margin-top: 16px;
+    padding: 10px 20px;
+    background: #fff;
+    color: #333;
+    border-radius: 6px;
+    border: none;
+    font-size: 15px;
+    cursor: pointer;
+  ">
+    マイページへ進む
+  </button>
+</div>
 
 <footer class="footer">
   <div>Ryo緑</div>
@@ -220,10 +234,10 @@
       toast.style.visibility = "visible";
       toast.style.opacity = "1";
 
-      /* ▼ 1.5秒後にマイページへ遷移（正しいパス） */
-      setTimeout(() => {
-        window.location.href = "https://ryoen-restaurant.github.io/restaurant-site/mypage.html";
-      }, 1500);
+      /* ▼ ボタンでマイページへ進む */
+      document.getElementById("goMypageBtn").addEventListener("click", () => {
+        window.location.href = "mypage.html";
+      });
 
     } catch (err) {
 
