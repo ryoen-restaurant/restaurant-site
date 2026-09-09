@@ -51,21 +51,22 @@
       box-sizing: border-box;
     }
 
-    /* ▼ 完了トースト（フェードイン通知） */
+    /* ▼ 中央ポップアップ（モーダル風） */
     #completeToast {
       display: none;
       position: fixed;
-      top: 20px;
+      top: 50%;
       left: 50%;
-      transform: translateX(-50%);
+      transform: translate(-50%, -50%);
       background: #333;
       color: #fff;
-      padding: 12px 20px;
-      border-radius: 6px;
-      font-size: 15px;
-      z-index: 999;
+      padding: 24px 32px;
+      border-radius: 8px;
+      font-size: 16px;
+      z-index: 9999;
       opacity: 0;
-      transition: opacity 0.6s;
+      transition: opacity 0.5s ease;
+      text-align: center;
     }
   </style>
 </head>
@@ -127,7 +128,7 @@
   <p id="msg" style="margin-top:20px; color:#d33;"></p>
 </section>
 
-<!-- ▼ 完了通知トースト -->
+<!-- ▼ 中央ポップアップ -->
 <div id="completeToast">登録が完了しました。マイページへ移動します。</div>
 
 <footer class="footer">
@@ -213,10 +214,13 @@
       };
       localStorage.setItem("userProfile", JSON.stringify(profile));
 
-      /* ▼ 完了トースト表示 */
+      /* ▼ 中央ポップアップ表示 */
       const toast = document.getElementById("completeToast");
       toast.style.display = "block";
-      setTimeout(() => toast.style.opacity = "1", 50);
+
+      requestAnimationFrame(() => {
+        toast.style.opacity = "1";
+      });
 
       /* ▼ 1.5秒後にマイページへ遷移 */
       setTimeout(() => {
