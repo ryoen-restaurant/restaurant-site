@@ -12,46 +12,6 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
   <style>
-    .register-form {
-      width: 100%;
-      max-width: 480px;
-      margin: 0 auto;
-    }
-
-    .name-row {
-      display: flex;
-      gap: 40px;
-      width: 100%;
-    }
-    .name-field {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    @media (max-width: 600px) {
-      .name-row {
-        flex-direction: column;
-        gap: 10px;
-      }
-    }
-
-    .register-form label {
-      margin-top: 18px;
-      margin-bottom: 6px;
-      font-size: 15px;
-      color: #333;
-    }
-    .reserve-input {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 15px;
-      box-sizing: border-box;
-    }
-
-    /* ▼ 中央ポップアップ（!important を使わない） */
     #completeToast {
       display: none;
       opacity: 0;
@@ -75,24 +35,10 @@
 
 <header class="header">
   <div class="logo">Ryo緑</div>
-
-  <div class="hamburger" id="hamburger">
-    <span></span><span></span><span></span>
-  </div>
-
-  <nav class="nav" id="nav">
-    <a href="index.html#concept">こだわり</a>
-    <a href="index.html#menu">メニュー</a>
-    <a href="index.html#kodawari">イベント</a>
-    <a href="access.html">アクセス</a>
-    <a href="mypage.html">マイページ</a>
-    <a href="reserve.html" class="nav-reserve">ご予約</a>
-  </nav>
 </header>
 
 <section class="section reserve-panel-vertical">
   <h2>新規登録</h2>
-  <p>必要事項をご入力ください。</p>
 
   <form id="registerForm" class="register-form">
 
@@ -128,9 +74,9 @@
   <p id="msg" style="margin-top:20px; color:#d33;"></p>
 </section>
 
-<!-- ▼ 中央ポップアップ（ボタン付き） -->
+<!-- ▼ 中央ポップアップ -->
 <div id="completeToast">
-  登録が完了しました。<br>
+  <p id="toastMessage">登録処理を行っています。</p>
   <button id="goMypageBtn" style="
     margin-top: 16px;
     padding: 10px 20px;
@@ -144,17 +90,6 @@
     マイページへ進む
   </button>
 </div>
-
-<footer class="footer">
-  <div>Ryo緑</div>
-  <small>© Ryo緑</small>
-</footer>
-
-<script>
-  const hamburger = document.getElementById("hamburger");
-  const nav = document.getElementById("nav");
-  hamburger.addEventListener("click", () => nav.classList.toggle("active"));
-</script>
 
 <script>
   const firebaseConfig = {
@@ -170,9 +105,23 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
+  /* ▼ マイページへ進むボタン */
+  document.getElementById("goMypageBtn").addEventListener("click", () => {
+    window.location.href = "mypage.html";
+  });
+
   document.getElementById("registerForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    /* ▼ ボタンクリック → 即ポップアップ表示 */
+    const toast = document.getElementById("completeToast");
+    toast.style.display = "block";
+    setTimeout(() => toast.style.opacity = "1", 10);
+
+    const toastMessage = document.getElementById("toastMessage");
+    toastMessage.textContent = "登録処理を行っています…";
+
+    /* ▼ 入力値取得 */
     const lastName = document.getElementById("lastName").value.trim();
     const firstName = document.getElementById("firstName").value.trim();
     const email = document.getElementById("email").value.trim();
@@ -184,24 +133,20 @@
     msg.textContent = "";
 
     if (password !== passwordConfirm) {
-      msg.textContent = "パスワードが一致しません。もう一度ご確認ください。";
+      msg.textContent = "パスワードが一致しません。";
+      toastMessage.textContent = "パスワードが一致しません。";
       return;
     }
 
     try {
-
       /* ▼ Firestoreで重複チェック */
       const userCheck = await db.collection("users")
         .where("email", "==", email)
         .get();
 
       if (!userCheck.empty) {
-        msg.textContent = "このメールアドレスは既に登録されています。ログイン画面へ移動します。";
-
-        setTimeout(() => {
-          window.location.href = "login.html";
-        }, 1500);
-
+        msg.textContent = "このメールアドレスは既に登録されています。";
+        toastMessage.textContent = "すでに登録されています。";
         return;
       }
 
@@ -228,32 +173,12 @@
       };
       localStorage.setItem("userProfile", JSON.stringify(profile));
 
-      /* ▼ ポップアップ表示（確実に表示される） */
-      const toast = document.getElementById("completeToast");
-      toast.style.display = "block";
-      setTimeout(() => {
-        toast.style.opacity = "1";
-      }, 10);
-
-      /* ▼ ボタンでマイページへ進む */
-      const btn = document.getElementById("goMypageBtn");
-      btn.addEventListener("click", () => {
-        window.location.href = "mypage.html";
-      });
+      msg.textContent = "登録が完了しました。";
+      toastMessage.textContent = "登録が完了しました。";
 
     } catch (err) {
-
-      if (err.code === "auth/email-already-in-use") {
-        msg.textContent = "このメールアドレスは既に登録されています。ログイン画面へ移動します。";
-
-        setTimeout(() => {
-          window.location.href = "login.html";
-        }, 1500);
-
-        return;
-      }
-
       msg.textContent = "登録に失敗しました：" + err.message;
+      toastMessage.textContent = "登録に失敗しました。";
     }
   });
 </script>
