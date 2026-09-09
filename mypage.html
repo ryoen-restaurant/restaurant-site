@@ -3,22 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>マイページ｜Ryo縁</title>
+  <title>マイページ｜Ryo緑</title>
 
   <link rel="stylesheet" href="style.css">
 
-  <!-- LIFF SDK -->
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-
   <!-- Firebase v8互換 -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <!-- LIFF SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
 
 <body>
 
 <header class="header">
-  <div class="logo">Ryo縁</div>
+  <div class="logo">Ryo緑</div>
 </header>
 
 <section class="section reserve-panel-vertical">
@@ -40,7 +41,7 @@
 </section>
 
 <script>
-  // ▼ Firebase設定（あなたの値）
+  /* ▼ Firebase設定 */
   const firebaseConfig = {
     apiKey: "AIzaSyDnXJIOmutkJ0SrPln5XdKHUF9UUEnhtdI",
     authDomain: "ryoen-1dc81.firebaseapp.com",
@@ -57,14 +58,41 @@
   async function init() {
     await liff.init({ liffId: "2011522851-uNGHHKMk" });
 
-    if (!liff.isLoggedIn()) {
-      liff.login();
+    let profile = null;
+
+    /* ▼ LINEログイン */
+    if (liff.isLoggedIn()) {
+      const p = await liff.getProfile();
+      profile = {
+        displayName: p.displayName,
+        userId: p.userId,
+        pictureUrl: p.pictureUrl
+      };
+    }
+
+    /* ▼ Googleログイン */
+    const googleUser = firebase.auth().currentUser;
+    if (googleUser) {
+      profile = {
+        displayName: googleUser.displayName,
+        userId: googleUser.uid,
+        pictureUrl: googleUser.photoURL
+      };
+    }
+
+    /* ▼ ローカル保存（Google用） */
+    if (!profile) {
+      const saved = localStorage.getItem("userProfile");
+      if (saved) profile = JSON.parse(saved);
+    }
+
+    /* ▼ どちらもログインしていない場合 */
+    if (!profile) {
+      window.location.href = "reserve.html";
       return;
     }
 
-    const profile = await liff.getProfile();
-
-    // ▼ プロフィール表示
+    /* ▼ プロフィール表示 */
     document.getElementById("profileBox").innerHTML = `
       <div style="text-align:center;">
         <img src="${profile.pictureUrl}" style="width:80px; height:80px; border-radius:50%; margin-bottom:10px;">
@@ -73,7 +101,7 @@
       </div>
     `;
 
-    // ▼ 予約履歴読み込み
+    /* ▼ 予約履歴読み込み */
     const historyRef = db.collection("reservations")
       .where("userId", "==", profile.userId)
       .orderBy("createdAt", "desc");
@@ -81,7 +109,6 @@
     const historySnap = await historyRef.get();
 
     let html = "";
-
     historySnap.forEach(doc => {
       const r = doc.data();
       html += `
@@ -97,9 +124,11 @@
 
   init();
 
-  // ▼ ログアウト
+  /* ▼ ログアウト */
   document.getElementById("logoutBtn").addEventListener("click", () => {
     liff.logout();
+    firebase.auth().signOut();
+    localStorage.removeItem("userProfile");
     window.location.href = "reserve.html";
   });
 </script>
