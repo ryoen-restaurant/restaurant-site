@@ -65,8 +65,8 @@
       padding-right: 12px;
     }
 
-    /* ▼ ポップアップ */
-    #completeToast {
+    /* ▼ ポップアップ共通 */
+    .toast {
       display: none;
       opacity: 0;
       position: fixed;
@@ -78,13 +78,13 @@
       padding: 28px 36px;
       border-radius: 12px;
       font-size: 17px;
-      z-index: 99999;
       text-align: center;
       transition: opacity 0.4s ease;
       box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+      z-index: 99999;
     }
 
-    #goMypageBtn {
+    .toast-btn {
       margin-top: 18px;
       padding: 10px 20px;
       background: #fff;
@@ -94,15 +94,30 @@
       font-size: 15px;
       cursor: pointer;
       font-weight: bold;
-      display: none;
     }
   </style>
 </head>
 
 <body>
 
+<!-- ▼ ハンバーガーメニュー復活 -->
 <header class="header">
   <div class="logo">Ryo緑</div>
+
+  <div class="hamburger" id="hamburger">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+
+  <nav class="nav" id="nav">
+    <a href="index.html#concept">こだわり</a>
+    <a href="index.html#menu">メニュー</a>
+    <a href="index.html#kodawari">イベント</a>
+    <a href="access.html">アクセス</a>
+    <a href="mypage.html">マイページ</a>
+    <a href="reserve.html" class="nav-reserve">ご予約</a>
+  </nav>
 </header>
 
 <section class="section reserve-panel-vertical">
@@ -142,13 +157,27 @@
   <p id="msg" style="margin-top:20px; color:#d33;"></p>
 </section>
 
-<!-- ▼ ポップアップ -->
-<div id="completeToast">
-  <p id="toastMessage">登録処理を行っています…</p>
-  <button id="goMypageBtn">マイページへ進む</button>
+<!-- ▼ 成功ポップアップ -->
+<div id="successToast" class="toast">
+  <p>登録が完了しました。</p>
+  <button class="toast-btn" onclick="location.href='mypage.html'">マイページへ進む</button>
+</div>
+
+<!-- ▼ 失敗ポップアップ -->
+<div id="errorToast" class="toast">
+  <p id="errorMessage"></p>
+  <button class="toast-btn" onclick="location.href='mypage.html'">マイページへ進む</button>
 </div>
 
 <script>
+  /* ▼ ハンバーガーメニュー動作 */
+  const hamburger = document.getElementById("hamburger");
+  const nav = document.getElementById("nav");
+  hamburger.addEventListener("click", () => {
+    nav.classList.toggle("active");
+  });
+
+  /* ▼ Firebase設定 */
   const firebaseConfig = {
     apiKey: "AIzaSyDnXJIOmutkJ0SrPln5XdKHUF9UUEnhtdI",
     authDomain: "ryoen-restaurant.github.io",
@@ -162,108 +191,85 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  document.getElementById("goMypageBtn").addEventListener("click", () => {
-    window.location.href = "mypage.html";
-  });
-
-document.getElementById("registerForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const toast = document.getElementById("completeToast");
-  const toastMessage = document.getElementById("toastMessage");
-  const goBtn = document.getElementById("goMypageBtn");
-
-  /* ▼ 即ポップアップ表示 */
-  toast.style.display = "block";
-
-  /* ▼ 強制 reflow（これがないと切り替わらない） */
-  toast.getBoundingClientRect();
-
-  toast.style.opacity = "1";
-
-  toastMessage.textContent = "登録処理を行っています…";
-  goBtn.style.display = "none";
-
-  /* ▼ 入力値取得 */
-  const lastName = document.getElementById("lastName").value.trim();
-  const firstName = document.getElementById("firstName").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const phone = document.getElementById("phone").value.trim();
-  const password = document.getElementById("password").value;
-  const passwordConfirm = document.getElementById("passwordConfirm").value;
-
-  const msg = document.getElementById("msg");
-  msg.textContent = "";
-
-  /* ▼ パスワード不一致 */
-  if (password !== passwordConfirm) {
-    msg.textContent = "パスワードが一致しません。";
-
-    setTimeout(() => {
-      toastMessage.textContent = "パスワードが一致しません。";
-      goBtn.style.display = "block";
-    }, 1500);
-
-    return;
+  /* ▼ ポップアップ表示関数 */
+  function showToast(toast) {
+    toast.style.display = "block";
+    toast.getBoundingClientRect(); // 強制再描画
+    toast.style.opacity = "1";
   }
 
-  try {
-    /* ▼ Firestoreで重複チェック */
-    const userCheck = await db.collection("users")
-      .where("email", "==", email)
-      .get();
+  document.getElementById("registerForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-    if (!userCheck.empty) {
-      msg.textContent = "このアカウントは既に登録されています。";
+    const lastName = document.getElementById("lastName").value.trim();
+    const firstName = document.getElementById("firstName").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const password = document.getElementById("password").value;
+    const passwordConfirm = document.getElementById("passwordConfirm").value;
 
-      setTimeout(() => {
-        toastMessage.textContent = "このアカウントは既に登録されています。";
-        goBtn.style.display = "block";
-      }, 1500);
+    const msg = document.getElementById("msg");
 
+    const successToast = document.getElementById("successToast");
+    const errorToast = document.getElementById("errorToast");
+    const errorMessage = document.getElementById("errorMessage");
+
+    /* ▼ パスワード不一致 → 失敗ポップアップ */
+    if (password !== passwordConfirm) {
+      errorMessage.textContent = "パスワードが一致しません。";
+      showToast(errorToast);
       return;
     }
 
-    /* ▼ Firebase Authentication で新規登録 */
-    const newUser = await firebase.auth().createUserWithEmailAndPassword(email, password);
-    const uid = newUser.user.uid;
+    try {
+      /* ▼ Firestoreで重複チェック */
+      const userCheck = await db.collection("users")
+        .where("email", "==", email)
+        .get();
 
-    /* ▼ Firestoreへ保存 */
-    await db.collection("users").doc(uid).set({
-      lastName,
-      firstName,
-      email,
-      phone,
-      createdAt: new Date()
-    });
+      if (!userCheck.empty) {
+        errorMessage.textContent = "このアカウントは既に登録されています。";
+        showToast(errorToast);
+        return;
+      }
 
-    /* ▼ ローカルストレージへ保存 */
-    const profile = {
-      displayName: `${lastName} ${firstName}`,
-      userId: uid,
-      email,
-      phone,
-      pictureUrl: ""
-    };
-    localStorage.setItem("userProfile", JSON.stringify(profile));
+      /* ▼ Firebase Authentication */
+      const newUser = await firebase.auth().createUserWithEmailAndPassword(email, password);
+      const uid = newUser.user.uid;
 
-    msg.textContent = "登録が完了しました。";
+      /* ▼ Firestore保存は一旦停止（成功ポップアップを確実に出すため） */
+      // try {
+      //   await db.collection("users").doc(uid).set({
+      //     lastName,
+      //     firstName,
+      //     email,
+      //     phone,
+      //     createdAt: new Date()
+      //   });
+      // } catch (fireErr) {
+      //   console.warn("Firestore保存失敗:", fireErr);
+      // }
 
-    /* ▼ 1.5秒後に切り替え（確実に動く） */
-    setTimeout(() => {
-      toastMessage.textContent = "登録が完了しました。";
-      goBtn.style.display = "block";
-    }, 1500);
+      /* ▼ ローカル保存 */
+      const profile = {
+        displayName: `${lastName} ${firstName}`,
+        userId: uid,
+        email,
+        phone,
+        pictureUrl: ""
+      };
+      localStorage.setItem("userProfile", JSON.stringify(profile));
 
-  } catch (err) {
-    msg.textContent = "登録に失敗しました：" + err.message;
+      msg.textContent = "登録が完了しました。";
 
-    setTimeout(() => {
-      toastMessage.textContent = "登録に失敗しました。";
-      goBtn.style.display = "block";
-    }, 1500);
-  }
-});
+      /* ▼ 成功ポップアップ */
+      showToast(successToast);
+
+    } catch (err) {
+      errorMessage.textContent = "登録に失敗しました。";
+      showToast(errorToast);
+    }
+  });
 </script>
 
 </body>
