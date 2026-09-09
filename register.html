@@ -12,14 +12,12 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
   <style>
-    /* ▼ フォーム全体をスマホ幅に合わせる */
     .register-form {
       width: 100%;
       max-width: 480px;
       margin: 0 auto;
     }
 
-    /* ▼ 名前だけ横並び（PC） */
     .name-row {
       display: flex;
       gap: 40px;
@@ -31,7 +29,6 @@
       flex-direction: column;
     }
 
-    /* ▼ スマホでは縦並びに切り替え */
     @media (max-width: 600px) {
       .name-row {
         flex-direction: column;
@@ -39,7 +36,6 @@
       }
     }
 
-    /* ▼ 入力欄デザイン（背景からはみ出さない） */
     .register-form label {
       margin-top: 18px;
       margin-bottom: 6px;
@@ -99,7 +95,6 @@
 
   <form id="registerForm" class="register-form">
 
-    <!-- ▼ 名前（PC横並び／スマホ縦並び） -->
     <div class="name-row">
       <div class="name-field">
         <label>姓</label>
@@ -112,7 +107,6 @@
       </div>
     </div>
 
-    <!-- ▼ 以下は縦並び -->
     <label>メールアドレス</label>
     <input type="email" id="email" class="reserve-input" required>
 
@@ -180,9 +174,27 @@
     }
 
     try {
+
+      /* ▼ Firestoreで重複チェック */
+      const userCheck = await db.collection("users")
+        .where("email", "==", email)
+        .get();
+
+      if (!userCheck.empty) {
+        msg.textContent = "このメールアドレスは既に登録されています。ログイン画面へ移動します。";
+
+        setTimeout(() => {
+          window.location.href = "login.html";
+        }, 1500);
+
+        return;
+      }
+
+      /* ▼ Firebase Authentication で新規登録 */
       const newUser = await firebase.auth().createUserWithEmailAndPassword(email, password);
       const uid = newUser.user.uid;
 
+      /* ▼ Firestoreへ保存 */
       await db.collection("users").doc(uid).set({
         lastName,
         firstName,
@@ -191,6 +203,7 @@
         createdAt: new Date()
       });
 
+      /* ▼ ローカルストレージへ保存 */
       const profile = {
         displayName: `${lastName} ${firstName}`,
         userId: uid,
@@ -200,17 +213,28 @@
       };
       localStorage.setItem("userProfile", JSON.stringify(profile));
 
-      // ▼ 完了トースト表示
+      /* ▼ 完了トースト表示 */
       const toast = document.getElementById("completeToast");
       toast.style.display = "block";
       setTimeout(() => toast.style.opacity = "1", 50);
 
-      // ▼ 1.5秒後にマイページへ遷移
+      /* ▼ 1.5秒後にマイページへ遷移 */
       setTimeout(() => {
         window.location.href = "mypage.html";
       }, 1500);
 
     } catch (err) {
+
+      if (err.code === "auth/email-already-in-use") {
+        msg.textContent = "このメールアドレスは既に登録されています。ログイン画面へ移動します。";
+
+        setTimeout(() => {
+          window.location.href = "login.html";
+        }, 1500);
+
+        return;
+      }
+
       msg.textContent = "登録に失敗しました：" + err.message;
     }
   });
