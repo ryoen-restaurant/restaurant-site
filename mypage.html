@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>マイページ｜Ryo縁</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <!-- LIFF SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <!-- Firebase v8互換 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+</head>
+
+<body>
+
+<header class="header">
+  <div class="logo">Ryo縁</div>
+</header>
+
+<section class="section reserve-panel-vertical">
+  <h2>マイページ</h2>
+
+  <div id="profileBox" class="reserve-links" style="margin-bottom:20px;">
+    <p>読み込み中...</p>
+  </div>
+
+  <div class="reserve-links">
+    <a href="reserve-form.html" class="reserve-btn">新規予約</a>
+    <a href="#" id="logoutBtn" class="reserve-btn" style="background:#b55;">ログアウト</a>
+  </div>
+
+  <h3 style="margin-top:40px;">予約履歴</h3>
+  <div id="historyBox">
+    <p>読み込み中...</p>
+  </div>
+</section>
+
+<script>
+  // ▼ Firebase設定（あなたの値）
+  const firebaseConfig = {
+    apiKey: "AIzaSyDnXJIOmutkJ0SrPln5XdKHUF9UUEnhtdI",
+    authDomain: "ryoen-1dc81.firebaseapp.com",
+    projectId: "ryoen-1dc81",
+    storageBucket: "ryoen-1dc81.firebasestorage.app",
+    messagingSenderId: "92335833506",
+    appId: "1:92335833506:web:ac55b67620a086cfd332fb",
+    measurementId: "G-6D3M8D7VG6"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  async function init() {
+    await liff.init({ liffId: "2011522851-uNGHHKMk" });
+
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
+    }
+
+    const profile = await liff.getProfile();
+
+    // ▼ プロフィール表示
+    document.getElementById("profileBox").innerHTML = `
+      <div style="text-align:center;">
+        <img src="${profile.pictureUrl}" style="width:80px; height:80px; border-radius:50%; margin-bottom:10px;">
+        <p>${profile.displayName} さん</p>
+        <p style="font-size:12px; color:#666;">ID: ${profile.userId}</p>
+      </div>
+    `;
+
+    // ▼ 予約履歴読み込み
+    const historyRef = db.collection("reservations")
+      .where("userId", "==", profile.userId)
+      .orderBy("createdAt", "desc");
+
+    const historySnap = await historyRef.get();
+
+    let html = "";
+
+    historySnap.forEach(doc => {
+      const r = doc.data();
+      html += `
+        <div class="reserve-links" style="margin-bottom:10px;">
+          <p>${r.date} ${r.time} / ${r.count}名</p>
+        </div>
+      `;
+    });
+
+    document.getElementById("historyBox").innerHTML =
+      html || "<p>予約履歴はありません。</p>";
+  }
+
+  init();
+
+  // ▼ ログアウト
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    liff.logout();
+    window.location.href = "reserve.html";
+  });
+</script>
+
+</body>
+</html>

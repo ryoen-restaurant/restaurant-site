@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>予約フォーム｜Ryo縁</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <!-- LIFF SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <!-- Firebase v8互換 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+</head>
+
+<body>
+
+<section class="section reserve-panel-vertical">
+  <h2>予約フォーム</h2>
+
+  <div id="userBox" style="margin-bottom:20px;">読み込み中...</div>
+
+  <label>予約日</label>
+  <input type="date" id="date">
+
+  <label>時間</label>
+  <input type="time" id="time">
+
+  <label>人数</label>
+  <input type="number" id="count" min="1" value="1">
+
+  <button id="submitBtn" class="reserve-btn">予約する</button>
+</section>
+
+<script>
+  // ▼ Firebase設定（あなたの値）
+  const firebaseConfig = {
+    apiKey: "AIzaSyDnXJIOmutkJ0SrPln5XdKHUF9UUEnhtdI",
+    authDomain: "ryoen-1dc81.firebaseapp.com",
+    projectId: "ryoen-1dc81",
+    storageBucket: "ryoen-1dc81.firebasestorage.app",
+    messagingSenderId: "92335833506",
+    appId: "1:92335833506:web:ac55b67620a086cfd332fb",
+    measurementId: "G-6D3M8D7VG6"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  async function init() {
+    await liff.init({ liffId: "2011522851-uNGHHKMk" });
+
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
+    }
+
+    const profile = await liff.getProfile();
+
+    // ▼ ユーザー表示
+    document.getElementById("userBox").innerHTML = `
+      <p>${profile.displayName} さん</p>
+      <p style="font-size:12px; color:#666;">ID: ${profile.userId}</p>
+    `;
+
+    // ▼ 予約保存
+    document.getElementById("submitBtn").addEventListener("click", async () => {
+      const date = document.getElementById("date").value;
+      const time = document.getElementById("time").value;
+      const count = document.getElementById("count").value;
+
+      if (!date || !time) {
+        alert("予約日と時間を入力してください");
+        return;
+      }
+
+      await db.collection("reservations").add({
+        userId: profile.userId,
+        name: profile.displayName,
+        date: date,
+        time: time,
+        count: count,
+        createdAt: new Date()
+      });
+
+      alert("予約を受け付けました");
+      window.location.href = "mypage.html";
+    });
+  }
+
+  init();
+</script>
+
+</body>
+</html>
