@@ -12,6 +12,60 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
   <style>
+    * { box-sizing: border-box; }
+
+    .register-form {
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .register-form label {
+      margin-top: 18px;
+      margin-bottom: 6px;
+      font-size: 15px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .reserve-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fafafa;
+      font-size: 15px;
+    }
+
+    .reserve-input:focus {
+      border-color: #4caf50;
+      background: #fff;
+      outline: none;
+    }
+
+    .name-row {
+      display: flex;
+      gap: 20px;
+      width: 100%;
+    }
+
+    @media (max-width: 600px) {
+      .name-row {
+        flex-direction: column;
+        gap: 12px;
+      }
+    }
+
+    .section {
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+
+    /* ▼ ポップアップ */
     #completeToast {
       display: none;
       opacity: 0;
@@ -21,12 +75,26 @@
       transform: translate(-50%, -50%);
       background: #333;
       color: #fff;
-      padding: 24px 32px;
-      border-radius: 8px;
-      font-size: 16px;
+      padding: 28px 36px;
+      border-radius: 12px;
+      font-size: 17px;
       z-index: 99999;
       text-align: center;
-      transition: opacity 0.5s ease;
+      transition: opacity 0.4s ease;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    }
+
+    #goMypageBtn {
+      margin-top: 18px;
+      padding: 10px 20px;
+      background: #fff;
+      color: #333;
+      border-radius: 6px;
+      border: none;
+      font-size: 15px;
+      cursor: pointer;
+      font-weight: bold;
+      display: none;
     }
   </style>
 </head>
@@ -66,7 +134,7 @@
     <label>パスワード（確認用）</label>
     <input type="password" id="passwordConfirm" class="reserve-input" required>
 
-    <button type="submit" class="reserve-btn" style="margin-top:20px;">
+    <button type="submit" class="reserve-btn" style="margin-top:24px;">
       登録する
     </button>
   </form>
@@ -74,21 +142,10 @@
   <p id="msg" style="margin-top:20px; color:#d33;"></p>
 </section>
 
-<!-- ▼ 中央ポップアップ -->
+<!-- ▼ ポップアップ -->
 <div id="completeToast">
-  <p id="toastMessage">登録処理を行っています。</p>
-  <button id="goMypageBtn" style="
-    margin-top: 16px;
-    padding: 10px 20px;
-    background: #fff;
-    color: #333;
-    border-radius: 6px;
-    border: none;
-    font-size: 15px;
-    cursor: pointer;
-  ">
-    マイページへ進む
-  </button>
+  <p id="toastMessage">登録処理を行っています…</p>
+  <button id="goMypageBtn">マイページへ進む</button>
 </div>
 
 <script>
@@ -105,82 +162,108 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  /* ▼ マイページへ進むボタン */
   document.getElementById("goMypageBtn").addEventListener("click", () => {
     window.location.href = "mypage.html";
   });
 
-  document.getElementById("registerForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
+document.getElementById("registerForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-    /* ▼ ボタンクリック → 即ポップアップ表示 */
-    const toast = document.getElementById("completeToast");
-    toast.style.display = "block";
-    setTimeout(() => toast.style.opacity = "1", 10);
+  const toast = document.getElementById("completeToast");
+  const toastMessage = document.getElementById("toastMessage");
+  const goBtn = document.getElementById("goMypageBtn");
 
-    const toastMessage = document.getElementById("toastMessage");
-    toastMessage.textContent = "登録処理を行っています…";
+  /* ▼ 即ポップアップ表示 */
+  toast.style.display = "block";
 
-    /* ▼ 入力値取得 */
-    const lastName = document.getElementById("lastName").value.trim();
-    const firstName = document.getElementById("firstName").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const phone = document.getElementById("phone").value.trim();
-    const password = document.getElementById("password").value;
-    const passwordConfirm = document.getElementById("passwordConfirm").value;
+  /* ▼ 強制 reflow（これがないと切り替わらない） */
+  toast.getBoundingClientRect();
 
-    const msg = document.getElementById("msg");
-    msg.textContent = "";
+  toast.style.opacity = "1";
 
-    if (password !== passwordConfirm) {
-      msg.textContent = "パスワードが一致しません。";
+  toastMessage.textContent = "登録処理を行っています…";
+  goBtn.style.display = "none";
+
+  /* ▼ 入力値取得 */
+  const lastName = document.getElementById("lastName").value.trim();
+  const firstName = document.getElementById("firstName").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const password = document.getElementById("password").value;
+  const passwordConfirm = document.getElementById("passwordConfirm").value;
+
+  const msg = document.getElementById("msg");
+  msg.textContent = "";
+
+  /* ▼ パスワード不一致 */
+  if (password !== passwordConfirm) {
+    msg.textContent = "パスワードが一致しません。";
+
+    setTimeout(() => {
       toastMessage.textContent = "パスワードが一致しません。";
+      goBtn.style.display = "block";
+    }, 1500);
+
+    return;
+  }
+
+  try {
+    /* ▼ Firestoreで重複チェック */
+    const userCheck = await db.collection("users")
+      .where("email", "==", email)
+      .get();
+
+    if (!userCheck.empty) {
+      msg.textContent = "このアカウントは既に登録されています。";
+
+      setTimeout(() => {
+        toastMessage.textContent = "このアカウントは既に登録されています。";
+        goBtn.style.display = "block";
+      }, 1500);
+
       return;
     }
 
-    try {
-      /* ▼ Firestoreで重複チェック */
-      const userCheck = await db.collection("users")
-        .where("email", "==", email)
-        .get();
+    /* ▼ Firebase Authentication で新規登録 */
+    const newUser = await firebase.auth().createUserWithEmailAndPassword(email, password);
+    const uid = newUser.user.uid;
 
-      if (!userCheck.empty) {
-        msg.textContent = "このメールアドレスは既に登録されています。";
-        toastMessage.textContent = "すでに登録されています。";
-        return;
-      }
+    /* ▼ Firestoreへ保存 */
+    await db.collection("users").doc(uid).set({
+      lastName,
+      firstName,
+      email,
+      phone,
+      createdAt: new Date()
+    });
 
-      /* ▼ Firebase Authentication で新規登録 */
-      const newUser = await firebase.auth().createUserWithEmailAndPassword(email, password);
-      const uid = newUser.user.uid;
+    /* ▼ ローカルストレージへ保存 */
+    const profile = {
+      displayName: `${lastName} ${firstName}`,
+      userId: uid,
+      email,
+      phone,
+      pictureUrl: ""
+    };
+    localStorage.setItem("userProfile", JSON.stringify(profile));
 
-      /* ▼ Firestoreへ保存 */
-      await db.collection("users").doc(uid).set({
-        lastName,
-        firstName,
-        email,
-        phone,
-        createdAt: new Date()
-      });
+    msg.textContent = "登録が完了しました。";
 
-      /* ▼ ローカルストレージへ保存 */
-      const profile = {
-        displayName: `${lastName} ${firstName}`,
-        userId: uid,
-        email,
-        phone,
-        pictureUrl: ""
-      };
-      localStorage.setItem("userProfile", JSON.stringify(profile));
-
-      msg.textContent = "登録が完了しました。";
+    /* ▼ 1.5秒後に切り替え（確実に動く） */
+    setTimeout(() => {
       toastMessage.textContent = "登録が完了しました。";
+      goBtn.style.display = "block";
+    }, 1500);
 
-    } catch (err) {
-      msg.textContent = "登録に失敗しました：" + err.message;
+  } catch (err) {
+    msg.textContent = "登録に失敗しました：" + err.message;
+
+    setTimeout(() => {
       toastMessage.textContent = "登録に失敗しました。";
-    }
-  });
+      goBtn.style.display = "block";
+    }, 1500);
+  }
+});
 </script>
 
 </body>
