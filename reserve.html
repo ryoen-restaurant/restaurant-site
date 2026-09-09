@@ -102,12 +102,12 @@
   document.getElementById("googleLogin").addEventListener("click", () => {
     const provider = new firebase.auth.GoogleAuthProvider();
 
-    // GitHub Pages では popup が使えないため redirect を使用
+    // GitHub Pages でログインを開始する
     firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     firebase.auth().signInWithRedirect(provider);
   });
 
-  /* ▼ Googleログイン後の処理 */
+  /* ▼ Googleログイン後の処理（GitHub Pagesで受け取る） */
   firebase.auth().getRedirectResult().then(result => {
     if (result.user) {
       const user = result.user;
