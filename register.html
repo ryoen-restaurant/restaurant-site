@@ -51,7 +51,7 @@
       box-sizing: border-box;
     }
 
-    /* ▼ 中央ポップアップ（モーダル風） */
+    /* ▼ 中央ポップアップ（確実に表示される版） */
     #completeToast {
       display: none;
       position: fixed;
@@ -214,13 +214,14 @@
       };
       localStorage.setItem("userProfile", JSON.stringify(profile));
 
-      /* ▼ 中央ポップアップ表示 */
+      /* ▼ 中央ポップアップ表示（確実に表示される版） */
       const toast = document.getElementById("completeToast");
       toast.style.display = "block";
 
-      requestAnimationFrame(() => {
+      // Safari・Chrome対策：描画後に opacity を変更
+      setTimeout(() => {
         toast.style.opacity = "1";
-      });
+      }, 50);
 
       /* ▼ 1.5秒後にマイページへ遷移 */
       setTimeout(() => {
