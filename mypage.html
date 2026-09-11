@@ -31,6 +31,7 @@
 
   <div class="reserve-links">
     <a href="reserve-form.html" class="reserve-btn">新規予約</a>
+    <a href="edit-profile.html" class="reserve-btn" style="background:#5b8;">登録情報を編集</a>
     <a href="#" id="logoutBtn" class="reserve-btn" style="background:#b55;">ログアウト</a>
   </div>
 
@@ -59,6 +60,7 @@
     await liff.init({ liffId: "2011522851-uNGHHKMk" });
 
     let profile = null;
+    let userData = null;
 
     /* ▼ LINEログイン */
     if (liff.isLoggedIn()) {
@@ -76,11 +78,12 @@
       profile = {
         displayName: googleUser.displayName,
         userId: googleUser.uid,
-        pictureUrl: googleUser.photoURL
+        pictureUrl: googleUser.photoURL,
+        email: googleUser.email
       };
     }
 
-    /* ▼ ローカル保存（Google用） */
+    /* ▼ ローカル保存（新規登録ユーザー） */
     if (!profile) {
       const saved = localStorage.getItem("userProfile");
       if (saved) profile = JSON.parse(saved);
@@ -92,12 +95,27 @@
       return;
     }
 
+    /* ▼ Firestoreから最新プロフィール取得 */
+    try {
+      const userDoc = await db.collection("users").doc(profile.userId).get();
+
+      if (userDoc.exists) {
+        userData = userDoc.data();
+        profile.displayName = `${userData.lastName || ""} ${userData.firstName || ""}`;
+      } else {
+        userData = {};  // ← Firestoreにデータが無い場合でも安全に扱う
+      }
+    } catch (e) {
+      console.warn("Firestore読み込み失敗:", e);
+      userData = {};
+    }
+
     /* ▼ プロフィール表示 */
     document.getElementById("profileBox").innerHTML = `
       <div style="text-align:center;">
-        <img src="${profile.pictureUrl}" style="width:80px; height:80px; border-radius:50%; margin-bottom:10px;">
-        <p>${profile.displayName} さん</p>
-        <p style="font-size:12px; color:#666;">ID: ${profile.userId}</p>
+        <p style="font-size:20px; font-weight:bold; margin-bottom:6px;">
+          ${profile.displayName} さん
+        </p>
       </div>
     `;
 
