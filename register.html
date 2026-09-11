@@ -65,7 +65,6 @@
       padding-right: 12px;
     }
 
-    /* ▼ ポップアップ共通 */
     .toast {
       display: none;
       opacity: 0;
@@ -100,14 +99,11 @@
 
 <body>
 
-<!-- ▼ ハンバーガーメニュー復活 -->
 <header class="header">
   <div class="logo">Ryo緑</div>
 
   <div class="hamburger" id="hamburger">
-    <span></span>
-    <span></span>
-    <span></span>
+    <span></span><span></span><span></span>
   </div>
 
   <nav class="nav" id="nav">
@@ -157,121 +153,98 @@
   <p id="msg" style="margin-top:20px; color:#d33;"></p>
 </section>
 
-<!-- ▼ 成功ポップアップ -->
 <div id="successToast" class="toast">
   <p>登録が完了しました。</p>
   <button class="toast-btn" onclick="location.href='mypage.html'">マイページへ進む</button>
 </div>
 
-<!-- ▼ 失敗ポップアップ -->
 <div id="errorToast" class="toast">
   <p id="errorMessage"></p>
   <button class="toast-btn" onclick="location.href='mypage.html'">マイページへ進む</button>
 </div>
 
 <script>
-  /* ▼ ハンバーガーメニュー動作 */
   const hamburger = document.getElementById("hamburger");
   const nav = document.getElementById("nav");
-  hamburger.addEventListener("click", () => {
-    nav.classList.toggle("active");
-  });
+  hamburger.addEventListener("click", () => nav.classList.toggle("active"));
 
-  /* ▼ Firebase設定 */
-  const firebaseConfig = {
-    apiKey: "AIzaSyDnXJIOmutkJ0SrPln5XdKHUF9UUEnhtdI",
-    authDomain: "ryoen-restaurant.github.io",
-    projectId: "ryoen-1dc81",
-    storageBucket: "ryoen-1dc81.firebasestorage.app",
-    messagingSenderId: "92335833506",
-    appId: "1:92335833506:web:ac55b67620a086cfd332fb",
-    measurementId: "G-6D3M8D7VG6"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyDnXJIOmutkJ0SrPln5XdKHUF9UUEnhtdI",
+  authDomain: "ryoen-1dc81.firebaseapp.com",
+  projectId: "ryoen-1dc81",
+  storageBucket: "ryoen-1dc81.firebasestorage.app",
+  messagingSenderId: "92335833506",
+  appId: "1:92335833506:web:ac55b67620a086cfd332fb",
+  measurementId: "G-6D3M8D7VG6"
+};
 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  /* ▼ ポップアップ表示関数 */
   function showToast(toast) {
     toast.style.display = "block";
-    toast.getBoundingClientRect(); // 強制再描画
+    toast.getBoundingClientRect();
     toast.style.opacity = "1";
   }
 
-  document.getElementById("registerForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
+document.getElementById("registerForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-    const lastName = document.getElementById("lastName").value.trim();
-    const firstName = document.getElementById("firstName").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const phone = document.getElementById("phone").value.trim();
-    const password = document.getElementById("password").value;
-    const passwordConfirm = document.getElementById("passwordConfirm").value;
+  const lastName = document.getElementById("lastName").value.trim();
+  const firstName = document.getElementById("firstName").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const password = document.getElementById("password").value;
+  const passwordConfirm = document.getElementById("passwordConfirm").value;
 
-    const msg = document.getElementById("msg");
+  const successToast = document.getElementById("successToast");
+  const errorToast = document.getElementById("errorToast");
+  const errorMessage = document.getElementById("errorMessage");
 
-    const successToast = document.getElementById("successToast");
-    const errorToast = document.getElementById("errorToast");
-    const errorMessage = document.getElementById("errorMessage");
+  if (password !== passwordConfirm) {
+    errorMessage.textContent = "パスワードが一致しません。";
+    showToast(errorToast);
+    return;
+  }
 
-    /* ▼ パスワード不一致 → 失敗ポップアップ */
-    if (password !== passwordConfirm) {
-      errorMessage.textContent = "パスワードが一致しません。";
+  try {
+    // ▼ Firestore でメール重複チェック
+    const userCheck = await db.collection("users")
+      .where("email", "==", email)
+      .get();
+
+    if (!userCheck.empty) {
+      errorMessage.textContent = "このメールアドレスは既に登録されています。";
       showToast(errorToast);
       return;
     }
 
-    try {
-      /* ▼ Firestoreで重複チェック */
-      const userCheck = await db.collection("users")
-        .where("email", "==", email)
-        .get();
+    // ▼ Firestore に保存（Auth は使わない）
+    const newUserRef = await db.collection("users").add({
+      lastName,
+      firstName,
+      email,
+      phone,
+      password, // ← Firestore管理の場合は保存が必要（暗号化推奨）
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
 
-      if (!userCheck.empty) {
-        errorMessage.textContent = "このアカウントは既に登録されています。";
-        showToast(errorToast);
-        return;
-      }
+    const uid = newUserRef.id; // Firestore の自動ID
 
-      /* ▼ Firebase Authentication */
-      const newUser = await firebase.auth().createUserWithEmailAndPassword(email, password);
-      const uid = newUser.user.uid;
+    // ▼ ローカル保存
+    const profile = {
+      displayName: `${lastName} ${firstName}`,
+      userId: uid,
+      email,
+      phone,
+      pictureUrl: ""
+    };
+    localStorage.setItem("userProfile", JSON.stringify(profile));
 
-      /* ▼ Firestore保存は一旦停止（成功ポップアップを確実に出すため） */
-      // try {
-      //   await db.collection("users").doc(uid).set({
-      //     lastName,
-      //     firstName,
-      //     email,
-      //     phone,
-      //     createdAt: new Date()
-      //   });
-      // } catch (fireErr) {
-      //   console.warn("Firestore保存失敗:", fireErr);
-      // }
+    showToast(successToast);
 
-      /* ▼ ローカル保存 */
-      const profile = {
-        displayName: `${lastName} ${firstName}`,
-        userId: uid,
-        email,
-        phone,
-        pictureUrl: ""
-      };
-      localStorage.setItem("userProfile", JSON.stringify(profile));
-
-      msg.textContent = "登録が完了しました。";
-
-      /* ▼ 成功ポップアップ */
-      showToast(successToast);
-
-    } catch (err) {
-      errorMessage.textContent = "登録に失敗しました。";
-      showToast(errorToast);
-    }
-  });
-</script>
-
-</body>
-</html>
-マイページは画像の所があるので登録時にアイコン画像登録できるようにしたい
+  } catch (err) {
+    errorMessage.textContent = "登録に失敗しました。";
+    showToast(errorToast);
+  }
+});
