@@ -36,12 +36,12 @@
 </section>
 
 <script>
-  /* ▼ Firebase設定 */
+  /* ▼ Firebase設定（正しいプロジェクトに統一） */
   const firebaseConfig = {
     apiKey: "AIzaSyDnXJIOmutkJ0SrPln5XdKHUF9UUEnhtdI",
-    authDomain: "ryoen-1dc81.firebaseapp.com",
-    projectId: "ryoen-1dc81",
-    storageBucket: "ryoen-1dc81.firebasestorage.app",
+    authDomain: "ryoenn-1dc81.firebaseapp.com",
+    projectId: "ryoenn-1dc81",
+    storageBucket: "ryoenn-1dc81.appspot.com",   // ← 修正済み（最重要）
     messagingSenderId: "92335833506",
     appId: "1:92335833506:web:ac55b67620a086cfd332fb",
     measurementId: "G-6D3M8D7VG6"
@@ -51,7 +51,7 @@
   const db = firebase.firestore();
 
   let profile = null;
-  let userData = {};  // ← 読み込み中停止の原因を防ぐため必ず初期化
+  let userData = {};  // ← 読み込み中停止防止
 
   async function init() {
     await liff.init({ liffId: "2011522851-uNGHHKMk" });
@@ -96,11 +96,11 @@
       if (userDoc.exists) {
         userData = userDoc.data();
       } else {
-        userData = {};  // ← これがないと読み込み中で止まる
+        userData = {};  // ← データが無い場合も安全に初期化
       }
     } catch (e) {
       console.warn("Firestore読み込み失敗:", e);
-      userData = {};  // ← 読み込み失敗時も安全に初期化
+      userData = {};  // ← 読み込み失敗時も初期化
     }
 
     renderForm();  // ← 必ず最後に呼ぶ
@@ -136,7 +136,7 @@
   document.getElementById("saveBtn").addEventListener("click", async () => {
     console.log("currentUser:", firebase.auth().currentUser);
     console.log("profile:", profile);
-  
+
     const data = {
       lastName: document.getElementById("lastName").value,
       firstName: document.getElementById("firstName").value,

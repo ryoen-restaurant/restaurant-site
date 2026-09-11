@@ -6,94 +6,85 @@
   <title>新規登録｜Ryo緑</title>
   <link rel="stylesheet" href="style.css">
 
-  <!-- Firebase v8互換 -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
   <style>
-    * { box-sizing: border-box; }
+  /* ▼ register-section（白いカード） */
+  .register-section {
+    background: #ffffff !important;
+    border-radius: 14px;
+    padding: 32px 24px;                     /* ← 左右の余白を均等に */
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    max-width: 480px;                       /* ← 幅を少し狭めて中央に見せる */
+    width: 100%;
+    margin: 60px auto;
+    box-sizing: border-box;                 /* ← 入力枠のズレ防止 */
+  }
 
-    .register-form {
-      width: 100%;
-      max-width: 480px;
-      margin: 0 auto;
-      background: #fff;
-      padding: 16px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
+  /* ▼ 親要素の余白（右寄り防止） */
+  section {
+    padding-left: 24px;
+    padding-right: 24px;
+    padding-top: 20px;
+    padding-bottom: 40px;
+    display: block;
+  }
 
-    .register-form label {
-      margin-top: 18px;
-      margin-bottom: 6px;
-      font-size: 15px;
-      font-weight: bold;
-      color: #333;
-    }
+  /* ▼ タイトル */
+  .register-section h2 {
+    text-align: center;
+    margin-bottom: 26px;
+    font-size: 24px;
+    font-weight: 600;
+  }
 
-    .reserve-input {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      background: #fafafa;
-      font-size: 15px;
-    }
+  /* ▼ フォーム全体の間隔 */
+  .form-group {
+    margin-bottom: 22px;
+  }
 
-    .reserve-input:focus {
-      border-color: #4caf50;
-      background: #fff;
-      outline: none;
-    }
+  /* ▼ ラベル */
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 15px;
+    color: #444;
+  }
 
-    .name-row {
-      display: flex;
-      gap: 20px;
-      width: 100%;
-    }
+  /* ▼ 入力欄 */
+  .form-group input {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 15px;
+    box-sizing: border-box;                 /* ← これで右寄りが完全に消える */
+  }
 
-    @media (max-width: 600px) {
-      .name-row {
-        flex-direction: column;
-        gap: 12px;
-      }
-    }
+  /* ▼ 姓名だけ横並び */
+  .name-row {
+    display: flex;
+    gap: 20px;
+  }
 
-    .section {
-      padding-left: 12px;
-      padding-right: 12px;
-    }
+  .name-field {
+    flex: 1;
+  }
 
-    .toast {
-      display: none;
-      opacity: 0;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #333;
-      color: #fff;
-      padding: 28px 36px;
-      border-radius: 12px;
-      font-size: 17px;
-      text-align: center;
-      transition: opacity 0.4s ease;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-      z-index: 99999;
-    }
+  /* ▼ 登録ボタン */
+  .register-btn {
+    width: 100%;
+    padding: 16px;
+    background: #4a7bd0;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 17px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
 
-    .toast-btn {
-      margin-top: 18px;
-      padding: 10px 20px;
-      background: #fff;
-      color: #333;
-      border-radius: 6px;
-      border: none;
-      font-size: 15px;
-      cursor: pointer;
-      font-weight: bold;
-    }
+  .register-btn:hover {
+    opacity: 0.9;
+  }
   </style>
 </head>
 
@@ -116,135 +107,124 @@
   </nav>
 </header>
 
-<section class="section reserve-panel-vertical">
+<section class="register-section">
   <h2>新規登録</h2>
 
-  <form id="registerForm" class="register-form">
+  <form id="registerForm">
 
+    <!-- ▼ 姓名だけ横並び -->
     <div class="name-row">
-      <div class="name-field">
+      <div class="form-group name-field">
         <label>姓</label>
-        <input type="text" id="lastName" class="reserve-input" required>
+        <input id="lastName" required>
       </div>
 
-      <div class="name-field">
+      <div class="form-group name-field">
         <label>名</label>
-        <input type="text" id="firstName" class="reserve-input" required>
+        <input id="firstName" required>
       </div>
     </div>
 
-    <label>メールアドレス</label>
-    <input type="email" id="email" class="reserve-input" required>
+    <!-- ▼ 以下は縦並び -->
+    <div class="form-group">
+      <label>メールアドレス</label>
+      <input id="email" type="email" required>
+    </div>
 
-    <label>電話番号</label>
-    <input type="tel" id="phone" class="reserve-input" required>
+    <div class="form-group">
+      <label>電話番号</label>
+      <input id="phone" required>
+    </div>
 
-    <label>パスワード（6文字以上）</label>
-    <input type="password" id="password" class="reserve-input" required>
+    <div class="form-group">
+      <label>パスワード</label>
+      <input id="password" type="password" required>
+    </div>
 
-    <label>パスワード（確認用）</label>
-    <input type="password" id="passwordConfirm" class="reserve-input" required>
+    <div class="form-group">
+      <label>パスワード確認</label>
+      <input id="passwordConfirm" type="password" required>
+    </div>
 
-    <button type="submit" class="reserve-btn" style="margin-top:24px;">
-      登録する
-    </button>
+    <button class="register-btn" type="submit">登録する</button>
   </form>
-
-  <p id="msg" style="margin-top:20px; color:#d33;"></p>
 </section>
 
-<div id="successToast" class="toast">
-  <p>登録が完了しました。</p>
-  <button class="toast-btn" onclick="location.href='mypage.html'">マイページへ進む</button>
-</div>
-
-<div id="errorToast" class="toast">
-  <p id="errorMessage"></p>
-  <button class="toast-btn" onclick="location.href='mypage.html'">マイページへ進む</button>
-</div>
+<footer class="footer">
+  <div>Ryo緑</div>
+  <small>© Ryo緑</small>
+</footer>
 
 <script>
   const hamburger = document.getElementById("hamburger");
   const nav = document.getElementById("nav");
   hamburger.addEventListener("click", () => nav.classList.toggle("active"));
+</script>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDnXJIOmutkJ0SrPln5XdKHUF9UUEnhtdI",
-  authDomain: "ryoen-1dc81.firebaseapp.com",
-  projectId: "ryoen-1dc81",
-  storageBucket: "ryoen-1dc81.firebasestorage.app",
-  messagingSenderId: "92335833506",
-  appId: "1:92335833506:web:ac55b67620a086cfd332fb",
-  measurementId: "G-6D3M8D7VG6"
-};
+<!-- Firebase v9 -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } 
+    from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, serverTimestamp } 
+    from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+  const firebaseConfig = {
+    apiKey: "AIzaSyDnXJIOmutkJ0SrPln5XdKHUF9UUEnhtdI",
+    authDomain: "ryoenn-1dc81.firebaseapp.com",
+    projectId: "ryoenn-1dc81",
+    storageBucket: "ryoenn-1dc81.appspot.com",
+    messagingSenderId: "92335833506",
+    appId: "1:92335833506:web:ac55b67620a086cfd332fb",
+    measurementId: "G-6D3M8D7VG6"
+  };
 
-  function showToast(toast) {
-    toast.style.display = "block";
-    toast.getBoundingClientRect();
-    toast.style.opacity = "1";
-  }
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-document.getElementById("registerForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("registerForm");
 
-  const lastName = document.getElementById("lastName").value.trim();
-  const firstName = document.getElementById("firstName").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const phone = document.getElementById("phone").value.trim();
-  const password = document.getElementById("password").value;
-  const passwordConfirm = document.getElementById("passwordConfirm").value;
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-  const successToast = document.getElementById("successToast");
-  const errorToast = document.getElementById("errorToast");
-  const errorMessage = document.getElementById("errorMessage");
+      const lastName = document.getElementById("lastName").value.trim();
+      const firstName = document.getElementById("firstName").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const password = document.getElementById("password").value;
+      const passwordConfirm = document.getElementById("passwordConfirm").value;
 
-  if (password !== passwordConfirm) {
-    errorMessage.textContent = "パスワードが一致しません。";
-    showToast(errorToast);
-    return;
-  }
+      if (password !== passwordConfirm) {
+        alert("パスワードが一致しません");
+        return;
+      }
 
-  try {
-    // ▼ Firestore でメール重複チェック
-    const userCheck = await db.collection("users")
-      .where("email", "==", email)
-      .get();
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await signInWithEmailAndPassword(auth, email, password);
 
-    if (!userCheck.empty) {
-      errorMessage.textContent = "このメールアドレスは既に登録されています。";
-      showToast(errorToast);
-      return;
-    }
+        const uid = userCredential.user.uid;
 
-    // ▼ Firestore に保存（Auth は使わない）
-    const newUserRef = await db.collection("users").add({
-      lastName,
-      firstName,
-      email,
-      phone,
-      password, // ← Firestore管理の場合は保存が必要（暗号化推奨）
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        await setDoc(doc(db, "users", uid), {
+          lastName,
+          firstName,
+          email,
+          phone,
+          createdAt: serverTimestamp()
+        });
+
+        alert("登録が完了しました！");
+        location.href = "mypage.html";
+
+      } catch (err) {
+        console.error(err);
+        alert("登録に失敗しました：" + err.message);
+      }
     });
+  });
+</script>
 
-    const uid = newUserRef.id; // Firestore の自動ID
-
-    // ▼ ローカル保存
-    const profile = {
-      displayName: `${lastName} ${firstName}`,
-      userId: uid,
-      email,
-      phone,
-      pictureUrl: ""
-    };
-    localStorage.setItem("userProfile", JSON.stringify(profile));
-
-    showToast(successToast);
-
-  } catch (err) {
-    errorMessage.textContent = "登録に失敗しました。";
-    showToast(errorToast);
-  }
-});
+</body>
+</html>

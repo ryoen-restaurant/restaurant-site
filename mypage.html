@@ -95,15 +95,21 @@
       return;
     }
 
-    /* ▼ Firestoreから最新プロフィール取得 */
+    /* ▼ Firestoreから最新プロフィール取得（姓＋名を優先） */
     try {
       const userDoc = await db.collection("users").doc(profile.userId).get();
 
       if (userDoc.exists) {
         userData = userDoc.data();
-        profile.displayName = `${userData.lastName || ""} ${userData.firstName || ""}`;
+
+        const fullName = `${userData.lastName || ""} ${userData.firstName || ""}`.trim();
+
+        // Firestoreの名前があれば優先して使う
+        if (fullName) {
+          profile.displayName = fullName;
+        }
       } else {
-        userData = {};  // ← Firestoreにデータが無い場合でも安全に扱う
+        userData = {};
       }
     } catch (e) {
       console.warn("Firestore読み込み失敗:", e);
