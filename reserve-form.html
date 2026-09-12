@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>予約フォーム｜Ryo縁</title>
+  <title>予約フォーム｜Ryo緑</title>
 
   <link rel="stylesheet" href="style.css">
 
@@ -12,7 +12,30 @@
 
   <!-- Firebase v8互換 -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <style>
+    .reserve-panel-vertical {
+      max-width: 520px;
+      width: 92%;
+      margin: 60px auto;
+      padding: 36px 32px;
+      background: #ffffff;
+      border-radius: 14px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    }
+    h2 { text-align:center; margin-bottom:28px; }
+    label { display:block; margin-bottom:8px; font-weight:600; }
+    input {
+      width:100%; padding:14px; margin-bottom:22px;
+      border:1px solid #ccc; border-radius:8px; background:#fafafa;
+    }
+    .reserve-btn {
+      width:100%; padding:16px; background:#4a7bd0; color:#fff;
+      border:none; border-radius:8px; font-size:17px;
+    }
+  </style>
 </head>
 
 <body>
@@ -20,8 +43,24 @@
 <section class="section reserve-panel-vertical">
   <h2>予約フォーム</h2>
 
-  <div id="userBox" style="margin-bottom:20px;">読み込み中...</div>
+  <div id="userBox">読み込み中...</div>
 
+  <!-- ▼ 名前（姓・名） -->
+  <label>姓</label>
+  <input type="text" id="lastName">
+
+  <label>名</label>
+  <input type="text" id="firstName">
+
+  <!-- ▼ 電話番号 -->
+  <label>電話番号</label>
+  <input type="tel" id="phone">
+
+  <!-- ▼ メールアドレス -->
+  <label>メールアドレス</label>
+  <input type="email" id="email">
+
+  <!-- ▼ 予約内容 -->
   <label>予約日</label>
   <input type="date" id="date">
 
@@ -35,7 +74,7 @@
 </section>
 
 <script>
-  // ▼ Firebase設定（あなたの値）
+  /* ▼ Firebase設定 */
   const firebaseConfig = {
     apiKey: "AIzaSyDnXJIOmutkJ0SrPln5XdKHUF9UUEnhtdI",
     authDomain: "ryoen-1dc81.firebaseapp.com",
@@ -50,23 +89,59 @@
   const db = firebase.firestore();
 
   async function init() {
+
+    /* ▼ メールログインのセッションを必ず保持（最重要） */
+    await firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
+    /* ▼ LIFF初期化 */
     await liff.init({ liffId: "2011522851-uNGHHKMk" });
 
-    if (!liff.isLoggedIn()) {
-      liff.login();
-      return;
+    let profile = null;
+
+    /* ▼ LINEログイン */
+    if (liff.isLoggedIn()) {
+      const p = await liff.getProfile();
+      profile = { userId: p.userId };
     }
 
-    const profile = await liff.getProfile();
+    /* ▼ メールログイン（Firebase Auth） */
+    const firebaseUser = firebase.auth().currentUser;
+    if (firebaseUser) {
+      profile = { userId: firebaseUser.uid };
+    }
 
-    // ▼ ユーザー表示
-    document.getElementById("userBox").innerHTML = `
-      <p>${profile.displayName} さん</p>
-      <p style="font-size:12px; color:#666;">ID: ${profile.userId}</p>
-    `;
+    /* ▼ Firestoreから自動入力（ログインユーザーのみ） */
+    if (profile) {
+      try {
+        const userDoc = await db.collection("users").doc(profile.userId).get();
+        if (userDoc.exists) {
+          const u = userDoc.data();
 
-    // ▼ 予約保存
+          document.getElementById("lastName").value = u.lastName || "";
+          document.getElementById("firstName").value = u.firstName || "";
+          document.getElementById("phone").value = u.phone || "";
+          document.getElementById("email").value = u.email || "";
+
+          document.getElementById("userBox").innerHTML =
+            `<p>${u.lastName} ${u.firstName} さん</p>`;
+        } else {
+          document.getElementById("userBox").innerHTML = "<p>ログイン中</p>";
+        }
+      } catch(e){
+        document.getElementById("userBox").innerHTML = "<p>ログイン中</p>";
+      }
+    } else {
+      /* ▼ ゲスト */
+      document.getElementById("userBox").innerHTML =
+        "<p>ゲスト予約は Googleフォームからお願いします</p>";
+    }
+
+    /* ▼ 予約処理 */
     document.getElementById("submitBtn").addEventListener("click", async () => {
+      const lastName = document.getElementById("lastName").value;
+      const firstName = document.getElementById("firstName").value;
+      const phone = document.getElementById("phone").value;
+      const email = document.getElementById("email").value;
       const date = document.getElementById("date").value;
       const time = document.getElementById("time").value;
       const count = document.getElementById("count").value;
@@ -76,13 +151,42 @@
         return;
       }
 
+      /* ▼ ゲスト → Googleフォームへ */
+      if (!profile) {
+        window.location.href =
+          "https://docs.google.com/forms/d/e/1FAIpQLSc4LexwzjVUV8x5D3-y20Qctr-ck9bdk4icGsduCBfl6KlC4w/viewform";
+        return;
+      }
+
+      /* ▼ Firestore保存 */
       await db.collection("reservations").add({
         userId: profile.userId,
-        name: profile.displayName,
-        date: date,
-        time: time,
-        count: count,
+        lastName,
+        firstName,
+        phone,
+        email,
+        date,
+        time,
+        count,
         createdAt: new Date()
+      });
+
+      /* ▼ Googleフォーム送信 */
+      const googleFormPostURL =
+        "https://docs.google.com/forms/d/e/1FAIpQLSc4LexwzjVUV8x5D3-y20Qctr-ck9bdk4icGsduCBfl6KlC4w/formResponse";
+
+      const formData = new FormData();
+      formData.append("entry.839065590", lastName);
+      formData.append("entry.2134219720", firstName);
+      formData.append("entry.2014639726", date);
+      formData.append("entry.1260409933", time);
+      formData.append("entry.1242969537", count);
+      formData.append("entry.1169798280", profile.userId);
+
+      fetch(googleFormPostURL, {
+        method: "POST",
+        mode: "no-cors",
+        body: formData
       });
 
       alert("予約を受け付けました");

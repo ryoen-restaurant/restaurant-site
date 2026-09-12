@@ -30,7 +30,7 @@
   </div>
 
   <div class="reserve-links">
-    <a href="reserve-form.html" class="reserve-btn">新規予約</a>
+    <button id="goReserve" class="reserve-btn">新規予約</button>
     <a href="edit-profile.html" class="reserve-btn" style="background:#5b8;">登録情報を編集</a>
     <a href="#" id="logoutBtn" class="reserve-btn" style="background:#b55;">ログアウト</a>
   </div>
@@ -67,19 +67,17 @@
       const p = await liff.getProfile();
       profile = {
         displayName: p.displayName,
-        userId: p.userId,
-        pictureUrl: p.pictureUrl
+        userId: p.userId
       };
     }
 
-    /* ▼ Googleログイン */
-    const googleUser = firebase.auth().currentUser;
-    if (googleUser) {
+    /* ▼ メールログイン（Firebase Auth） */
+    const firebaseUser = firebase.auth().currentUser;
+    if (firebaseUser) {
       profile = {
-        displayName: googleUser.displayName,
-        userId: googleUser.uid,
-        pictureUrl: googleUser.photoURL,
-        email: googleUser.email
+        displayName: firebaseUser.email,   // 仮の名前
+        userId: firebaseUser.uid,
+        email: firebaseUser.email
       };
     }
 
@@ -104,7 +102,6 @@
 
         const fullName = `${userData.lastName || ""} ${userData.firstName || ""}`.trim();
 
-        // Firestoreの名前があれば優先して使う
         if (fullName) {
           profile.displayName = fullName;
         }
@@ -147,6 +144,11 @@
   }
 
   init();
+
+  /* ▼ 新規予約（セッション保持のため replace を使用） */
+  document.getElementById("goReserve").addEventListener("click", () => {
+    window.location.replace("reserve-form.html");
+  });
 
   /* ▼ ログアウト */
   document.getElementById("logoutBtn").addEventListener("click", () => {
