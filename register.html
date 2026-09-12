@@ -11,15 +11,14 @@
   .register-section {
     background: #ffffff !important;
     border-radius: 14px;
-    padding: 32px 24px;                     /* ← 左右の余白を均等に */
+    padding: 32px 24px;
     box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-    max-width: 480px;                       /* ← 幅を少し狭めて中央に見せる */
+    max-width: 480px;
     width: 100%;
     margin: 60px auto;
-    box-sizing: border-box;                 /* ← 入力枠のズレ防止 */
+    box-sizing: border-box;
   }
 
-  /* ▼ 親要素の余白（右寄り防止） */
   section {
     padding-left: 24px;
     padding-right: 24px;
@@ -28,7 +27,6 @@
     display: block;
   }
 
-  /* ▼ タイトル */
   .register-section h2 {
     text-align: center;
     margin-bottom: 26px;
@@ -36,12 +34,10 @@
     font-weight: 600;
   }
 
-  /* ▼ フォーム全体の間隔 */
   .form-group {
     margin-bottom: 22px;
   }
 
-  /* ▼ ラベル */
   .form-group label {
     display: block;
     margin-bottom: 8px;
@@ -49,17 +45,15 @@
     color: #444;
   }
 
-  /* ▼ 入力欄 */
   .form-group input {
     width: 100%;
     padding: 14px;
     border: 1px solid #ccc;
     border-radius: 8px;
     font-size: 15px;
-    box-sizing: border-box;                 /* ← これで右寄りが完全に消える */
+    box-sizing: border-box;
   }
 
-  /* ▼ 姓名だけ横並び */
   .name-row {
     display: flex;
     gap: 20px;
@@ -69,7 +63,6 @@
     flex: 1;
   }
 
-  /* ▼ 登録ボタン */
   .register-btn {
     width: 100%;
     padding: 16px;
@@ -112,7 +105,6 @@
 
   <form id="registerForm">
 
-    <!-- ▼ 姓名だけ横並び -->
     <div class="name-row">
       <div class="form-group name-field">
         <label>姓</label>
@@ -125,7 +117,6 @@
       </div>
     </div>
 
-    <!-- ▼ 以下は縦並び -->
     <div class="form-group">
       <label>メールアドレス</label>
       <input id="email" type="email" required>
@@ -164,24 +155,67 @@
 <!-- Firebase v9 -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } 
-    from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, serverTimestamp } 
-    from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+  import { 
+    getAuth, 
+    createUserWithEmailAndPassword, 
+    signInWithEmailAndPassword 
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDnXJIOmutkJ0SrPln5XdKHUF9UUEnhtdI",
-    authDomain: "ryoenn-1dc81.firebaseapp.com",
-    projectId: "ryoenn-1dc81",
-    storageBucket: "ryoenn-1dc81.appspot.com",
-    messagingSenderId: "92335833506",
-    appId: "1:92335833506:web:ac55b67620a086cfd332fb",
-    measurementId: "G-6D3M8D7VG6"
-  };
+  import { 
+    getFirestore, 
+    doc, 
+    setDoc, 
+    getDoc,
+    serverTimestamp,
+    runTransaction
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDnXJIOmutkJ0SrPln5XdKHUF9UUEnhtdI",
+  authDomain: "ryoenn-1dc81.firebaseapp.com",
+  projectId: "ryoenn-1dc81",
+  storageBucket: "ryoenn-1dc81.appspot.com",
+  messagingSenderId: "92335833506",
+  appId: "1:92335833506:web:ac55b67620a086cfd332fb",
+  measurementId: "G-6D3M8D7VG6"
+};
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
+
+  /* ▼ 会員番号自動付与（00001形式） */
+  async function createUserIfNotExists(uid, email) {
+    const userRef = doc(db, "users", uid);
+    const userSnap = await getDoc(userRef);
+
+    if (userSnap.exists()) {
+      return userSnap.data();
+    }
+
+    const counterRef = doc(db, "system", "userCounter");
+
+    await runTransaction(db, async (transaction) => {
+      const counterSnap = await transaction.get(counterRef);
+      let current = 0;
+
+      if (counterSnap.exists()) {
+        current = counterSnap.data().count;
+      }
+
+      const newNumber = current + 1;
+
+      transaction.set(counterRef, { count: newNumber });
+
+      transaction.set(userRef, {
+        email,
+        memberNumber: String(newNumber).padStart(5, "0"),
+        createdAt: serverTimestamp()
+      });
+    });
+
+    return (await getDoc(userRef)).data();
+  }
 
   document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("registerForm");
@@ -207,13 +241,17 @@
 
         const uid = userCredential.user.uid;
 
+        /* ▼ 会員番号付与 */
+        await createUserIfNotExists(uid, email);
+
+        /* ▼ 名前などの追加情報を保存（上書き） */
         await setDoc(doc(db, "users", uid), {
           lastName,
           firstName,
           email,
           phone,
           createdAt: serverTimestamp()
-        });
+        }, { merge: true });
 
         alert("登録が完了しました！");
         location.href = "mypage.html";

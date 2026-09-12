@@ -127,8 +127,8 @@
       <label>住所</label>
       <input id="address" type="text" value="${userData.address || ""}" class="reserve-input">
 
-      <label>会員番号</label>
-      <input id="memberId" type="text" value="${userData.memberId || ""}" class="reserve-input">
+<label>会員番号</label>
+<input id="memberId" type="text" value="${userData.memberNumber || ""}" class="reserve-input" readonly style="background:#eee; cursor:not-allowed;">
     `;
   }
 
@@ -137,15 +137,15 @@
     console.log("currentUser:", firebase.auth().currentUser);
     console.log("profile:", profile);
 
-    const data = {
-      lastName: document.getElementById("lastName").value,
-      firstName: document.getElementById("firstName").value,
-      phone: document.getElementById("phone").value,
-      email: document.getElementById("email").value,
-      displayName: document.getElementById("displayName").value,
-      address: document.getElementById("address").value,
-      memberId: document.getElementById("memberId").value
-    };
+const data = {
+  lastName: document.getElementById("lastName").value,
+  firstName: document.getElementById("firstName").value,
+  phone: document.getElementById("phone").value,
+  email: document.getElementById("email").value,
+  displayName: document.getElementById("displayName").value,
+  address: document.getElementById("address").value
+  // memberId は保存しない（自動付与された値を保持）
+};
 
     await db.collection("users").doc(profile.userId).set(data, { merge: true });
 
