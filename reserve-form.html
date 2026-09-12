@@ -77,9 +77,9 @@
   /* ▼ Firebase設定 */
   const firebaseConfig = {
     apiKey: "AIzaSyDnXJIOmutkJ0SrPln5XdKHUF9UUEnhtdI",
-    authDomain: "ryoen-1dc81.firebaseapp.com",
-    projectId: "ryoen-1dc81",
-    storageBucket: "ryoen-1dc81.firebasestorage.app",
+    authDomain: "ryoenn-1dc81.firebaseapp.com",
+    projectId: "ryoenn-1dc81",
+    storageBucket: "ryoenn-1dc81.appspot.com",
     messagingSenderId: "92335833506",
     appId: "1:92335833506:web:ac55b67620a086cfd332fb",
     measurementId: "G-6D3M8D7VG6"
@@ -110,33 +110,39 @@
       profile = { userId: firebaseUser.uid };
     }
 
+    /* ▼ ローカル保存（メールログイン時の補助） */
+    if (!profile) {
+      const saved = localStorage.getItem("userProfile");
+      if (saved) profile = JSON.parse(saved);
+    }
+
+    /* ▼ 未ログインならゲスト扱い */
+    if (!profile) {
+      document.getElementById("userBox").innerHTML =
+        "<p>ゲスト予約は Googleフォームからお願いします</p>";
+      return;
+    }
+
     /* ▼ Firestoreから自動入力（ログインユーザーのみ） */
-    if (profile) {
-      try {
-        const userDoc = await db.collection("users").doc(profile.userId).get();
+    try {
+      const userDoc = await db.collection("users").doc(profile.userId).get();
 
-        if (userDoc.exists) {
-          const u = userDoc.data();
+      if (userDoc.exists) {
+        const u = userDoc.data();
 
-          document.getElementById("lastName").value = u.lastName || "";
-          document.getElementById("firstName").value = u.firstName || "";
-          document.getElementById("phone").value = u.phone || "";
-          document.getElementById("email").value = u.email || "";
+        document.getElementById("lastName").value = u.lastName || "";
+        document.getElementById("firstName").value = u.firstName || "";
+        document.getElementById("phone").value = u.phone || "";
+        document.getElementById("email").value = u.email || "";
 
-          document.getElementById("userBox").innerHTML =
-            `<p>${u.lastName} ${u.firstName} さん</p>`;
-        } else {
-          document.getElementById("userBox").innerHTML = "<p>ログイン中</p>";
-        }
-
-      } catch(e){
+        document.getElementById("userBox").innerHTML =
+          `<p>${u.lastName} ${u.firstName} さん（会員番号：${u.memberNumber || "未登録"}）</p>`;
+      } else {
         document.getElementById("userBox").innerHTML = "<p>ログイン中</p>";
       }
 
-    } else {
-      /* ▼ ゲスト */
-      document.getElementById("userBox").innerHTML =
-        "<p>ゲスト予約は Googleフォームからお願いします</p>";
+    } catch(e){
+      document.getElementById("userBox").innerHTML = "<p>ログイン中</p>";
     }
 
     /* ▼ 予約処理 */
@@ -172,24 +178,6 @@
         time,
         count,
         createdAt: new Date()
-      });
-
-      /* ▼ Googleフォーム送信 */
-      const googleFormPostURL =
-        "https://docs.google.com/forms/d/e/1FAIpQLSc4LexwzjVUV8x5D3-y20Qctr-ck9bdk4icGsduCBfl6KlC4w/formResponse";
-
-      const formData = new FormData();
-      formData.append("entry.839065590", lastName);
-      formData.append("entry.2134219720", firstName);
-      formData.append("entry.2014639726", date);
-      formData.append("entry.1260409933", time);
-      formData.append("entry.1242969537", count);
-      formData.append("entry.1169798280", profile.userId);
-
-      fetch(googleFormPostURL, {
-        method: "POST",
-        mode: "no-cors",
-        body: formData
       });
 
       alert("予約を受け付けました");
