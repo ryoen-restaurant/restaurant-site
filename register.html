@@ -54,15 +54,6 @@
     box-sizing: border-box;
   }
 
-  .name-row {
-    display: flex;
-    gap: 20px;
-  }
-
-  .name-field {
-    flex: 1;
-  }
-
   .register-btn {
     width: 100%;
     padding: 16px;
@@ -105,16 +96,10 @@
 
   <form id="registerForm">
 
-    <div class="name-row">
-      <div class="form-group name-field">
-        <label>姓</label>
-        <input id="lastName" required>
-      </div>
-
-      <div class="form-group name-field">
-        <label>名</label>
-        <input id="firstName" required>
-      </div>
+    <!-- ▼ 姓名 → 名前1つに統合 -->
+    <div class="form-group">
+      <label>名前</label>
+      <input id="name" required>
     </div>
 
     <div class="form-group">
@@ -223,8 +208,7 @@ const firebaseConfig = {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const lastName = document.getElementById("lastName").value.trim();
-      const firstName = document.getElementById("firstName").value.trim();
+      const name = document.getElementById("name").value.trim();
       const email = document.getElementById("email").value.trim();
       const phone = document.getElementById("phone").value.trim();
       const password = document.getElementById("password").value;
@@ -246,8 +230,7 @@ const firebaseConfig = {
 
         /* ▼ 名前などの追加情報を保存（上書き） */
         await setDoc(doc(db, "users", uid), {
-          lastName,
-          firstName,
+          name,
           email,
           phone,
           createdAt: serverTimestamp()

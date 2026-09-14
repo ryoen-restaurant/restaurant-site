@@ -42,12 +42,12 @@
 </section>
 
 <script>
-  /* ▼ Firebase設定 */
+  /* ▼ Firebase設定（正しい設定に統一） */
   const firebaseConfig = {
     apiKey: "AIzaSyDnXJIOmutkJ0SrPln5XdKHUF9UUEnhtdI",
-    authDomain: "ryoen-1dc81.firebaseapp.com",
-    projectId: "ryoen-1dc81",
-    storageBucket: "ryoen-1dc81.firebasestorage.app",
+    authDomain: "ryoenn-1dc81.firebaseapp.com",
+    projectId: "ryoenn-1dc81",
+    storageBucket: "ryoenn-1dc81.appspot.com",
     messagingSenderId: "92335833506",
     appId: "1:92335833506:web:ac55b67620a086cfd332fb",
     measurementId: "G-6D3M8D7VG6"
@@ -66,16 +66,14 @@
     if (liff.isLoggedIn()) {
       const p = await liff.getProfile();
       profile = {
-        displayName: p.displayName,
         userId: p.userId
       };
     }
 
-    /* ▼ メールログイン（Firebase Auth） */
+    /* ▼ Firebaseメールログイン */
     const firebaseUser = firebase.auth().currentUser;
     if (firebaseUser) {
       profile = {
-        displayName: firebaseUser.email,   // 仮の名前
         userId: firebaseUser.uid,
         email: firebaseUser.email
       };
@@ -87,30 +85,35 @@
       if (saved) profile = JSON.parse(saved);
     }
 
-    /* ▼ どちらもログインしていない場合 */
+    /* ▼ 未ログインなら予約ページへ */
     if (!profile) {
       window.location.href = "reserve.html";
       return;
     }
 
-    /* ▼ Firestoreから最新プロフィール取得（姓＋名を優先） */
+    /* ▼ Firestoreからユーザーデータ取得（name を使用） */
     try {
       const userDoc = await db.collection("users").doc(profile.userId).get();
 
       if (userDoc.exists) {
         userData = userDoc.data();
 
-        const fullName = `${userData.lastName || ""} ${userData.firstName || ""}`.trim();
-
-        if (fullName) {
-          profile.displayName = fullName;
+        // 🔥 ここが最重要：Firestore の name を表示名にする
+        if (userData.name) {
+          profile.displayName = userData.name;
+        } else {
+          profile.displayName = profile.email || "名前未設定";
         }
+
       } else {
         userData = {};
+        profile.displayName = profile.email || "名前未設定";
       }
+
     } catch (e) {
       console.warn("Firestore読み込み失敗:", e);
       userData = {};
+      profile.displayName = profile.email || "名前未設定";
     }
 
     /* ▼ プロフィール表示 */
@@ -134,7 +137,7 @@
       const r = doc.data();
       html += `
         <div class="reserve-links" style="margin-bottom:10px;">
-          <p>${r.date} ${r.time} / ${r.count}名</p>
+          <p>${r.date} ${r.time} / ${r.adult}名（大人）</p>
         </div>
       `;
     });
@@ -145,7 +148,7 @@
 
   init();
 
-  /* ▼ 新規予約（セッション保持のため replace を使用） */
+  /* ▼ 新規予約 */
   document.getElementById("goReserve").addEventListener("click", () => {
     window.location.replace("reserve-form.html");
   });

@@ -41,7 +41,7 @@
     apiKey: "AIzaSyDnXJIOmutkJ0SrPln5XdKHUF9UUEnhtdI",
     authDomain: "ryoenn-1dc81.firebaseapp.com",
     projectId: "ryoenn-1dc81",
-    storageBucket: "ryoenn-1dc81.appspot.com",   // ← 修正済み（最重要）
+    storageBucket: "ryoenn-1dc81.appspot.com",
     messagingSenderId: "92335833506",
     appId: "1:92335833506:web:ac55b67620a086cfd332fb",
     measurementId: "G-6D3M8D7VG6"
@@ -106,14 +106,11 @@
     renderForm();  // ← 必ず最後に呼ぶ
   }
 
-  /* ▼ フォーム描画 */
+  /* ▼ フォーム描画（姓名 → 名前1つに統合） */
   function renderForm() {
     document.getElementById("formBox").innerHTML = `
-      <label>姓</label>
-      <input id="lastName" type="text" value="${userData.lastName || ""}" class="reserve-input">
-
-      <label>名</label>
-      <input id="firstName" type="text" value="${userData.firstName || ""}" class="reserve-input">
+      <label>名前</label>
+      <input id="name" type="text" value="${userData.name || ""}" class="reserve-input">
 
       <label>電話番号</label>
       <input id="phone" type="text" value="${userData.phone || ""}" class="reserve-input">
@@ -127,25 +124,24 @@
       <label>住所</label>
       <input id="address" type="text" value="${userData.address || ""}" class="reserve-input">
 
-<label>会員番号</label>
-<input id="memberId" type="text" value="${userData.memberNumber || ""}" class="reserve-input" readonly style="background:#eee; cursor:not-allowed;">
+      <label>会員番号</label>
+      <input id="memberId" type="text" value="${userData.memberNumber || ""}" class="reserve-input" readonly style="background:#eee; cursor:not-allowed;">
     `;
   }
 
-  /* ▼ 保存処理 */
+  /* ▼ 保存処理（name に統合） */
   document.getElementById("saveBtn").addEventListener("click", async () => {
     console.log("currentUser:", firebase.auth().currentUser);
     console.log("profile:", profile);
 
-const data = {
-  lastName: document.getElementById("lastName").value,
-  firstName: document.getElementById("firstName").value,
-  phone: document.getElementById("phone").value,
-  email: document.getElementById("email").value,
-  displayName: document.getElementById("displayName").value,
-  address: document.getElementById("address").value
-  // memberId は保存しない（自動付与された値を保持）
-};
+    const data = {
+      name: document.getElementById("name").value,
+      phone: document.getElementById("phone").value,
+      email: document.getElementById("email").value,
+      displayName: document.getElementById("displayName").value,
+      address: document.getElementById("address").value
+      // memberNumber は保存しない（自動付与された値を保持）
+    };
 
     await db.collection("users").doc(profile.userId).set(data, { merge: true });
 

@@ -31,10 +31,18 @@
       width:100%; padding:14px; margin-bottom:22px;
       border:1px solid #ccc; border-radius:8px; background:#fafafa;
     }
-    .reserve-btn {
-      width:100%; padding:16px; background:#4a7bd0; color:#fff;
-      border:none; border-radius:8px; font-size:17px;
-    }
+.reserve-btn {
+  width:100%;
+  padding:16px;
+  background:#4a7bd0;
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  font-size:17px;
+  display:block;          /* ← aタグでも幅100%になる */
+  text-align:center;      /* ← 文字位置を中央に */
+  box-sizing:border-box;  /* ← paddingの扱いを統一 */
+}
   </style>
 </head>
 
@@ -73,7 +81,10 @@
   <label>その他ご要望</label>
   <input type="text" id="request">
 
-  <button id="submitBtn" class="reserve-btn">予約する</button>
+<button id="submitBtn" class="reserve-btn">予約する</button>
+<a href="mypage.html" class="reserve-btn" style="background:#888; margin-top:16px;">
+  戻る
+</a>
 </section>
 
 <script>
@@ -126,12 +137,12 @@
       if (userDoc.exists) {
         const u = userDoc.data();
 
-        document.getElementById("fullName").value = u.fullName || "";
+        document.getElementById("fullName").value = u.name || "";
         document.getElementById("phone").value = u.phone || "";
         document.getElementById("email").value = u.email || "";
 
         document.getElementById("userBox").innerHTML =
-          `<p>${u.fullName} さん（会員番号：${u.memberNumber || "未登録"}）</p>`;
+          `<p>${u.name} さん（会員番号：${u.memberNumber || "未登録"}）</p>`;
       } else {
         document.getElementById("userBox").innerHTML = "<p>ログイン中</p>";
       }
@@ -160,7 +171,7 @@
       /* ▼ Firestore保存 */
       await db.collection("reservations").add({
         userId: profile.userId,
-        fullName,
+        name,
         phone,
         email,
         date,
@@ -178,7 +189,7 @@
       const formData = new FormData();
 
       // 名前（姓＋名 → fullName）
-      formData.append("entry.2071519680", fullName);
+      formData.append("entry.2071519680", name);
 
       // 電話番号
       formData.append("entry.1886123858", phone);
