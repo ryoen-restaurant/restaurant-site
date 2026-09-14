@@ -14,6 +14,22 @@
 
   <!-- LIFF SDK -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <style>
+    /* ▼ 予約履歴カード */
+    .history-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .history-card p {
+      margin: 6px 0;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+  </style>
 </head>
 
 <body>
@@ -42,7 +58,7 @@
 </section>
 
 <script>
-  /* ▼ Firebase設定（正しい設定に統一） */
+  /* ▼ Firebase設定 */
   const firebaseConfig = {
     apiKey: "AIzaSyDnXJIOmutkJ0SrPln5XdKHUF9UUEnhtdI",
     authDomain: "ryoenn-1dc81.firebaseapp.com",
@@ -65,9 +81,7 @@
     /* ▼ LINEログイン */
     if (liff.isLoggedIn()) {
       const p = await liff.getProfile();
-      profile = {
-        userId: p.userId
-      };
+      profile = { userId: p.userId };
     }
 
     /* ▼ Firebaseメールログイン */
@@ -79,7 +93,7 @@
       };
     }
 
-    /* ▼ ローカル保存（新規登録ユーザー） */
+    /* ▼ ローカル保存 */
     if (!profile) {
       const saved = localStorage.getItem("userProfile");
       if (saved) profile = JSON.parse(saved);
@@ -91,20 +105,13 @@
       return;
     }
 
-    /* ▼ Firestoreからユーザーデータ取得（name を使用） */
+    /* ▼ Firestoreからユーザーデータ取得 */
     try {
       const userDoc = await db.collection("users").doc(profile.userId).get();
 
       if (userDoc.exists) {
         userData = userDoc.data();
-
-        // 🔥 ここが最重要：Firestore の name を表示名にする
-        if (userData.name) {
-          profile.displayName = userData.name;
-        } else {
-          profile.displayName = profile.email || "名前未設定";
-        }
-
+        profile.displayName = userData.name || profile.email || "名前未設定";
       } else {
         userData = {};
         profile.displayName = profile.email || "名前未設定";
@@ -132,18 +139,27 @@
 
     const historySnap = await historyRef.get();
 
+    /* ▼ 予約なしの場合 */
+    if (historySnap.empty) {
+      document.getElementById("historyBox").innerHTML =
+        "<p>予約はありません。</p>";
+      return;
+    }
+
+    /* ▼ 予約ありの場合：カード表示 */
     let html = "";
     historySnap.forEach(doc => {
       const r = doc.data();
       html += `
-        <div class="reserve-links" style="margin-bottom:10px;">
-          <p>${r.date} ${r.time} / ${r.adult}名（大人）</p>
+        <div class="history-card">
+          <p><strong>予約日：</strong>${r.date} ${r.time}</p>
+          <p><strong>人数：</strong>大人 ${r.adult}名 / 子ども ${r.child}名</p>
+          <p><strong>ご要望：</strong>${r.request || "なし"}</p>
         </div>
       `;
     });
 
-    document.getElementById("historyBox").innerHTML =
-      html || "<p>予約履歴はありません。</p>";
+    document.getElementById("historyBox").innerHTML = html;
   }
 
   init();
