@@ -45,12 +45,9 @@
 
   <div id="userBox">読み込み中...</div>
 
-  <!-- ▼ 名前（姓・名） -->
-  <label>姓</label>
-  <input type="text" id="lastName">
-
-  <label>名</label>
-  <input type="text" id="firstName">
+  <!-- ▼ 名前（姓・名 → 統合） -->
+  <label>名前</label>
+  <input type="text" id="fullName">
 
   <!-- ▼ 電話番号 -->
   <label>電話番号</label>
@@ -67,8 +64,14 @@
   <label>時間</label>
   <input type="time" id="time">
 
-  <label>人数</label>
-  <input type="number" id="count" min="1" value="1">
+  <label>人数（大人）</label>
+  <input type="number" id="adult" min="1" value="1">
+
+  <label>人数（子ども）</label>
+  <input type="number" id="child" min="0" value="0">
+
+  <label>その他ご要望</label>
+  <input type="text" id="request">
 
   <button id="submitBtn" class="reserve-btn">予約する</button>
 </section>
@@ -90,53 +93,45 @@
 
   async function init() {
 
-    /* ▼ メールログインのセッション保持（最重要） */
     await firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
-    /* ▼ LIFF初期化 */
     await liff.init({ liffId: "2011522851-uNGHHKMk" });
 
     let profile = null;
 
-    /* ▼ LINEログイン */
     if (liff.isLoggedIn()) {
       const p = await liff.getProfile();
       profile = { userId: p.userId };
     }
 
-    /* ▼ Firebaseメールログイン */
     const firebaseUser = firebase.auth().currentUser;
     if (firebaseUser) {
       profile = { userId: firebaseUser.uid };
     }
 
-    /* ▼ ローカル保存（メールログイン時の補助） */
     if (!profile) {
       const saved = localStorage.getItem("userProfile");
       if (saved) profile = JSON.parse(saved);
     }
 
-    /* ▼ 未ログインならゲスト扱い */
     if (!profile) {
       document.getElementById("userBox").innerHTML =
         "<p>ゲスト予約は Googleフォームからお願いします</p>";
       return;
     }
 
-    /* ▼ Firestoreから自動入力（ログインユーザーのみ） */
     try {
       const userDoc = await db.collection("users").doc(profile.userId).get();
 
       if (userDoc.exists) {
         const u = userDoc.data();
 
-        document.getElementById("lastName").value = u.lastName || "";
-        document.getElementById("firstName").value = u.firstName || "";
+        document.getElementById("fullName").value = u.fullName || "";
         document.getElementById("phone").value = u.phone || "";
         document.getElementById("email").value = u.email || "";
 
         document.getElementById("userBox").innerHTML =
-          `<p>${u.lastName} ${u.firstName} さん（会員番号：${u.memberNumber || "未登録"}）</p>`;
+          `<p>${u.fullName} さん（会員番号：${u.memberNumber || "未登録"}）</p>`;
       } else {
         document.getElementById("userBox").innerHTML = "<p>ログイン中</p>";
       }
@@ -147,37 +142,71 @@
 
     /* ▼ 予約処理 */
     document.getElementById("submitBtn").addEventListener("click", async () => {
-      const lastName = document.getElementById("lastName").value;
-      const firstName = document.getElementById("firstName").value;
+
+      const fullName = document.getElementById("fullName").value;
       const phone = document.getElementById("phone").value;
       const email = document.getElementById("email").value;
       const date = document.getElementById("date").value;
       const time = document.getElementById("time").value;
-      const count = document.getElementById("count").value;
+      const adult = document.getElementById("adult").value;
+      const child = document.getElementById("child").value;
+      const request = document.getElementById("request").value;
 
       if (!date || !time) {
         alert("予約日と時間を入力してください");
         return;
       }
 
-      /* ▼ ゲスト → Googleフォームへ */
-      if (!profile) {
-        window.location.href =
-          "https://docs.google.com/forms/d/e/1FAIpQLSc4LexwzjVUV8x5D3-y20Qctr-ck9bdk4icGsduCBfl6KlC4w/viewform";
-        return;
-      }
-
       /* ▼ Firestore保存 */
       await db.collection("reservations").add({
         userId: profile.userId,
-        lastName,
-        firstName,
+        fullName,
         phone,
         email,
         date,
         time,
-        count,
+        adult,
+        child,
+        request,
         createdAt: new Date()
+      });
+
+      /* ▼ Googleフォーム送信 */
+      const googleFormPostURL =
+        "https://docs.google.com/forms/d/e/1FAIpQLSc4LexwzjVUV8x5D3-y20Qctr-ck9bdk4icGsduCBfl6KlC4w/formResponse";
+
+      const formData = new FormData();
+
+      // 名前（姓＋名 → fullName）
+      formData.append("entry.2071519680", fullName);
+
+      // 電話番号
+      formData.append("entry.1886123858", phone);
+
+      // 大人
+      formData.append("entry.23917293", adult);
+
+      // 子ども
+      formData.append("entry.918460202", child);
+
+      // その他ご要望
+      formData.append("entry.668676855", request);
+
+      // 日付（Googleフォームの日時型）
+      const d = new Date(date + "T" + time);
+      formData.append("entry.1213423562_year", d.getFullYear());
+      formData.append("entry.1213423562_month", d.getMonth() + 1);
+      formData.append("entry.1213423562_day", d.getDate());
+      formData.append("entry.1213423562_hour", d.getHours());
+      formData.append("entry.1213423562_minute", d.getMinutes());
+
+      // メールアドレス
+      formData.append("emailAddress", email);
+
+      fetch(googleFormPostURL, {
+        method: "POST",
+        mode: "no-cors",
+        body: formData
       });
 
       alert("予約を受け付けました");
